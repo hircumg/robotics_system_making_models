@@ -7,11 +7,19 @@ from mpl_toolkits import mplot3d
 
 
 def plot_lines(lines):
-
     for line in lines:
-        plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='o', markerfacecolor='red', markersize=5, color='skyblue', linewidth=4)
+        plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='o', markerfacecolor='red', markersize=5,
+                 color='skyblue', linewidth=4)
 
     plt.show()
+
+def plot_points(points):
+    for i in range(points.shape[0]):
+        for j in range(points.shape[1]):
+            if points[i,j] % 2 ==  1:
+                plt.plot(i, j, 'bo')
+    plt.show()
+
 
 
 def plot_vectors(vectors):
@@ -43,7 +51,31 @@ def plot_vectors(vectors):
     # Show the plot to the screen
     pyplot.show()
 
-def one_slice(vectors, heigth, length, width, box_size, decimals= 6, frac= 0.001):
+
+def is_inside(point, polygon):
+    c_west = 0
+    i = 0
+    for line in polygon:
+        if abs(line[1][1] - line[0][1]) > 0.001:
+            x_int =line[0][0] +  (point[1] - line[0][1]) * (line[1][0] - line[0][0]) / (line[1][1] - line[0][1])
+            if abs(line[1][0] - line[0][0]) < 0.001:
+                #parralel Ox
+                x_int = line[1][0]
+
+
+            if ((min(line[0][0], line[1][0]) <= x_int) and
+                    (max(line[0][0], line[1][0]) >= x_int) and
+                    (min(line[0][1], line[1][1]) <= point[1]) and
+                    (max(line[0][1], line[1][1]) >= point[1]) and
+                    (x_int <= point[0])):
+                c_west = 1 - c_west
+                # print(i, x_int, line[0][0], line[1][0], c_west)
+
+        i += 1
+    return c_west
+
+
+def one_slice(vectors, heigth, x_min, x_max, y_min, y_max, box_size, decimals=6, frac=0.001):
     vectors = np.around(vectors - 10 ** (-(decimals + 5)), decimals=decimals)
     lines_of_slice = []
     triangles_of_slice = []
@@ -61,9 +93,7 @@ def one_slice(vectors, heigth, length, width, box_size, decimals= 6, frac= 0.001
             triangles_of_slice.append([triangle.copy(), upper])
     # triangles_of_slice = np.array(triangles_of_slice)
     # print( np.array(triangles_of_slice).shape)
-    plot_vectors(triangles_of_slice)
-
-
+    # plot_vectors(triangles_of_slice)
 
     # save only line of triangles in horizontal plane
     for triangle, upper in triangles_of_slice:
@@ -73,44 +103,40 @@ def one_slice(vectors, heigth, length, width, box_size, decimals= 6, frac= 0.001
         point_a = None
         point_b = None
         if upper == 2:
-    #         two points upper than height
+            #         two points upper than height
             min_ind = 0
             for i in range(2):
-                if triangle[min_ind][2] > triangle[i+1][2]:
-                    min_ind = i+1
+                if triangle[min_ind][2] > triangle[i + 1][2]:
+                    min_ind = i + 1
             point_m = triangle[min_ind]
-            point_a = triangle[(min_ind+1)%3]
-            point_b = triangle[(min_ind+2)%3]
+            point_a = triangle[(min_ind + 1) % 3]
+            point_b = triangle[(min_ind + 2) % 3]
 
         else:
-    #         two points lower than height
+            #         two points lower than height
             max_ind = 0
             for i in range(2):
-                if triangle[max_ind][2] < triangle[i+1][2]:
-                    max_ind = i+1
+                if triangle[max_ind][2] < triangle[i + 1][2]:
+                    max_ind = i + 1
             point_m = triangle[max_ind]
-            point_a = triangle[(max_ind+1)%3]
-            point_b = triangle[(max_ind+2)%3]
+            point_a = triangle[(max_ind + 1) % 3]
+            point_b = triangle[(max_ind + 2) % 3]
         # print(point_m[2], point_a[2], point_b[2], upper)
 
-
-    #     find intersections between lines and plane
-    #     with a line
+        #     find intersections between lines and plane
+        #     with a line
         z = heigth
         x_a = point_m[0] + (point_a[0] - point_m[0]) * (z - point_m[2]) / (point_a[2] - point_m[2])
         y_a = point_m[1] + (point_a[1] - point_m[1]) * (z - point_m[2]) / (point_a[2] - point_m[2])
 
         x_b = point_m[0] + (point_b[0] - point_m[0]) * (z - point_m[2]) / (point_b[2] - point_m[2])
         y_b = point_m[1] + (point_b[1] - point_m[1]) * (z - point_m[2]) / (point_b[2] - point_m[2])
-        lines_of_slice.append([[x_a, y_a],[x_b, y_b]])
+        lines_of_slice.append([[x_a, y_a], [x_b, y_b]])
     lines_of_slice = np.array(lines_of_slice)
     lines_of_slice = np.around(lines_of_slice - 10 ** (-(decimals + 5)), decimals=decimals)
     # print(lines_of_slice)
     # print(lines_of_slice.shape)
-    plot_lines(lines_of_slice)
-
-
-
+    # plot_lines(lines_of_slice)
 
     # separate borders
     separated_lines_of_slice = []
@@ -126,27 +152,42 @@ def one_slice(vectors, heigth, length, width, box_size, decimals= 6, frac= 0.001
             next_index = None
             for i in range(lines_of_slice.shape[0]):
                 temp_line = lines_of_slice[i]
-                if abs(temp_line[0][0] - last_point[0]) <= frac and abs(temp_line[0][1] - last_point[1]) <= frac :
+                if abs(temp_line[0][0] - last_point[0]) <= frac and abs(temp_line[0][1] - last_point[1]) <= frac:
                     next_index = i
                     closed_line_of_slice.append(lines_of_slice[next_index])
                     last_point = lines_of_slice[next_index][1]
                     lines_of_slice = np.delete(lines_of_slice, next_index, 0)
                     break
-                elif abs(temp_line[1][0] - last_point[0]) <= frac and abs(temp_line[1][1] - last_point[1]) <= frac :
+                elif abs(temp_line[1][0] - last_point[0]) <= frac and abs(temp_line[1][1] - last_point[1]) <= frac:
                     next_index = i
                     closed_line_of_slice.append(lines_of_slice[next_index])
                     last_point = lines_of_slice[next_index][0]
                     lines_of_slice = np.delete(lines_of_slice, next_index, 0)
                     break
 
-
             # print(next_index, last_line)
         separated_lines_of_slice.append(closed_line_of_slice)
 
-    print(len(separated_lines_of_slice))
-    return None
+    # print(len(separated_lines_of_slice))
+    # for s_lines_of_slice in separated_lines_of_slice:
+    #     plot_lines(s_lines_of_slice)
+    # create dotted plane
+    plane = np.zeros((int(round(abs(x_max-x_min))),int(round(abs(y_max-y_min)))))
+    # print(plane.shape)
+    # print(is_inside([-56, 6], separated_lines_of_slice[0]))
+    for cur_lines_of_slice in separated_lines_of_slice:
+        for i in range(plane.shape[0]):
+            for j in range(plane.shape[1]):
+                plane[i,j] += is_inside([int(round(x_min)) + i, int(round(y_min)) + j], cur_lines_of_slice)
+                # print([int(round(x_min)) + i, int(round(y_min)) + j], plane[i,j])
 
-def one_height_slice(mesh):
+    plane = plane % 2
+    return plane
+
+
+def one_height_slice(mesh,begin_height,box_size, fraction=3):
+    # slice_plane = slice(mesh)
+    plot_points(vectors, heigth, x_min, x_max, y_min, y_max, box_size)
     pass
 
 
@@ -154,7 +195,7 @@ def slice(mesh, bottom, upper):
     pass
 
 
-def find_mins_maxs(mesh, decimals = 6):
+def find_mins_maxs(mesh, decimals=6):
     '''
     Find borders of given 3d object
     :param mesh: mesh of given 3d object
@@ -200,19 +241,18 @@ def find_mins_maxs(mesh, decimals = 6):
 
 
 # Load the STL files
-# your_mesh = mesh.Mesh.from_file('Models/PLA_190to220_stl_file.stl')
-your_mesh = mesh.Mesh.from_file('Models/Minecraft_Hanger_hand_1.stl')
+your_mesh = mesh.Mesh.from_file('Models/PLA_190to220_stl_file.stl')
+# your_mesh = mesh.Mesh.from_file('Models/Minecraft_Hanger_hand_1.stl')
 # your_mesh = mesh.Mesh.from_file('Models/xyzCalibration_cube.stl')
 
 
 x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(your_mesh)
 
-one_slice(your_mesh.vectors, 3, abs(x_max-x_min), abs(y_max-y_min),10)
-one_slice(your_mesh.vectors, 13, abs(x_max-x_min), abs(y_max-y_min),10)
+one_slice(your_mesh.vectors, 3, x_min, x_max, y_min, y_max, 10)
+# one_slice(your_mesh.vectors, 13, abs(x_max-x_min), abs(y_max-y_min),10)
 # one_slice(your_mesh.vectors, 19, abs(x_max-x_min), abs(y_max-y_min),10)
 # print(your_mesh.normals)
-print(find_mins_maxs(your_mesh))
-
+# print(find_mins_maxs(your_mesh))
 
 # # Create a new plot
 # figure = pyplot.figure()

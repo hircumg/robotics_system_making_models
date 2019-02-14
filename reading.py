@@ -5,7 +5,7 @@ import math
 from matplotlib import pyplot
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-
+import time
 
 def plot_lines(lines):
     for line in lines:
@@ -98,7 +98,7 @@ def is_inside(point, polygon):
 
 
 def one_slice(vectors, height, x_min, x_max, y_min, y_max, decimals=6, frac=0.001):
-    vectors = np.around(vectors - 10 ** (-(decimals + 5)), decimals=decimals)
+    # vectors = np.around(vectors - 10 ** (-(decimals + 5)), decimals=decimals)
     lines_of_slice = []
     triangles_of_slice = []
 
@@ -116,7 +116,7 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, decimals=6, frac=0.00
     # triangles_of_slice = np.array(triangles_of_slice)
     # print( np.array(triangles_of_slice).shape)
     # plot_vectors(triangles_of_slice)
-
+    print("Triangles taken for height %.3f" %(height))
     # save only line of triangles in horizontal plane
     for triangle, upper in triangles_of_slice:
 
@@ -158,6 +158,7 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, decimals=6, frac=0.00
     lines_of_slice = np.around(lines_of_slice - 10 ** (-(decimals + 5)), decimals=decimals)
     # print(lines_of_slice)
     # print(lines_of_slice.shape)
+    print("Lines taken for height %.3f" % (height))
     # plot_lines(lines_of_slice)
 
     # separate borders
@@ -190,6 +191,7 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, decimals=6, frac=0.00
             # print(next_index, last_line)
         separated_lines_of_slice.append(closed_line_of_slice)
 
+    print("Borders separated height %.3f" % (height))
     # print(len(separated_lines_of_slice))
     # for s_lines_of_slice in separated_lines_of_slice:
     #     plot_lines(s_lines_of_slice)
@@ -202,13 +204,16 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, decimals=6, frac=0.00
             for j in range(plane.shape[1]):
                 plane[i,j] += is_inside([int(round(x_min)) + i, int(round(y_min)) + j], cur_lines_of_slice)
                 # print([int(round(x_min)) + i, int(round(y_min)) + j], plane[i,j])
-
+            if i % 10 == 0:
+                pers = i/plane.shape[0]
+                print("Points converted for %.3f persent separated height %.3f" % (pers,height))
     plane = plane % 2
     # plot_points(plane)
     return plane
 
 def convert_to_current_height(slice, begin_height, box_size):
     points = []
+
     for i in range(slice.shape[0]):
         for j in range(slice.shape[1]):
             x_i = int(round(i*box_size+box_size/2))
@@ -221,24 +226,29 @@ def convert_to_current_height(slice, begin_height, box_size):
     return points
 
 def one_height_slice(mesh, begin_height, box_size, fraction=3):
-    vectors = mesh.vectors
+    vectors = mesh.vectors.copy()
     x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(your_mesh)
     step = box_size // fraction
     height = begin_height
-    slice_plane = one_slice(vectors, height, x_min, x_max, y_min, y_max)
 
-    # for iter in range(fraction-2):
-    #     height += step
-    #     slice_plane += one_slice(vectors, height, x_min, x_max, y_min, y_max)
+
+    slice_plane = one_slice(vectors, height, x_min, x_max, y_min, y_max)
+    print("Temp slice on height %.3f made" %(height))
+    for iter in range(fraction-2):
+        height += step
+        slice_plane += one_slice(vectors, height, x_min, x_max, y_min, y_max)
+        print("Temp slice on height %.3f made" % (height))
 
     slice_plane += one_slice(vectors, begin_height+box_size, x_min, x_max, y_min, y_max)
+    print("Temp slice on height %.3f made" % (begin_height+box_size))
 
     slice_plane[slice_plane != 0] = 1
-    plot_points(slice_plane)
+    # plot_points(slice_plane)
     length = math.ceil(slice_plane.shape[0]/box_size)
     width = math.ceil(slice_plane.shape[1]/box_size)
     slice_plane_cubes = np.zeros((length, width))
-    print(slice_plane.shape, slice_plane_cubes.shape)
+    # print(slice_plane.shape, slice_plane_cubes.shape)
+
 
     for i in range(slice_plane_cubes.shape[0]):
         for j in range(slice_plane_cubes.shape[1]):
@@ -249,15 +259,33 @@ def one_height_slice(mesh, begin_height, box_size, fraction=3):
                     if (i*box_size+k%box_size < slice_plane.shape[0]) and (j*box_size + k//box_size < slice_plane.shape[1]):
                         slice_plane_cubes[i,j] = slice_plane[i*box_size+k%box_size, j*box_size + k//box_size]
 
-
-    plot_points(slice_plane_cubes)
+    # plot_points(slice_plane_cubes)
     converted_plane = convert_to_current_height(slice_plane_cubes,begin_height,box_size)
-    plot3d_points(converted_plane)
-    return slice_plane
+    # plot3d_points(converted_plane)
+    return converted_plane
 
 
-def slice(mesh, bottom, upper):
-    pass
+def slice(mesh, box_size, fraction= 3):
+    sliced_image =  []
+    begining_time = time.time()
+    x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(your_mesh)
+    print("Size of the 3d object: x:[%.3f, %.3f], y:[%.3f, %.3f], z: %.3f" %(x_min, x_max, y_min, y_max, z_max))
+    z_size = int(round(z_max / box_size))
+
+    for i in range(z_size):
+        time_slice = time.time()
+        temp_slice = one_height_slice(mesh, i*box_size, box_size, fraction=fraction)
+        sliced_image.extend(temp_slice)
+        current_height = i * box_size + box_size/2
+        time_slice = time.time() - time_slice
+        print("Height is: %.3f made. Taken time: %i ms" %(current_height,time_slice))
+    sliced_image = np.array(sliced_image)
+    # print(sliced_image)
+    # print(sliced_image.shape)
+    plot3d_points(sliced_image)
+    slicing_time = time.time() - begining_time
+    print('Slicing finished with time %i ms' %(slicing_time))
+    return sliced_image
 
 
 def find_mins_maxs(mesh, decimals=6):
@@ -306,15 +334,16 @@ def find_mins_maxs(mesh, decimals=6):
 
 
 # Load the STL files
-your_mesh = mesh.Mesh.from_file('Models/PLA_190to220_stl_file.stl')
-# your_mesh = mesh.Mesh.from_file('Models/Minecraft_Hanger_hand_1.stl')
+# your_mesh = mesh.Mesh.from_file('Models/PLA_190to220_stl_file.stl')
+your_mesh = mesh.Mesh.from_file('Models/Minecraft_Hanger_hand_1.stl')
+# your_mesh = mesh.Mesh.from_file('Models/Groot_v1_1M_Merged.stl')
 # your_mesh = mesh.Mesh.from_file('Models/xyzCalibration_cube.stl')
 
 
-x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(your_mesh)
+# x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(your_mesh)
 
 # one_slice(your_mesh.vectors, 3, x_min, x_max, y_min, y_max, 10)
-one_height_slice(your_mesh, 0, 10)
+slice(your_mesh, 10)
 # one_slice(your_mesh.vectors, 13, abs(x_max-x_min), abs(y_max-y_min),10)
 # one_slice(your_mesh.vectors, 19, abs(x_max-x_min), abs(y_max-y_min),10)
 # print(your_mesh.normals)

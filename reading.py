@@ -1,9 +1,10 @@
+
 from stl import mesh
 import numpy as np
+import math
 from matplotlib import pyplot
 import matplotlib.pyplot as plt
-
-from mpl_toolkits import mplot3d
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def plot_lines(lines):
@@ -18,6 +19,27 @@ def plot_points(points):
         for j in range(points.shape[1]):
             if points[i,j] % 2 ==  1:
                 plt.plot(i, j, 'bo')
+    plt.show()
+
+def plot3d_points(points):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    x = []
+    y = []
+    z = []
+    for point in points:
+        x.append(point[0])
+        y.append(point[1])
+        z.append(point[2])
+    print(x)
+    print(y)
+    print(z)
+    ax.scatter3D(x, y, z, c='r', marker='o')
+
+    ax.set_xlabel('X Label')
+    ax.set_ylabel('Y Label')
+    ax.set_zlabel('Z Label')
+
     plt.show()
 
 
@@ -75,7 +97,7 @@ def is_inside(point, polygon):
     return c_west
 
 
-def one_slice(vectors, heigth, x_min, x_max, y_min, y_max, box_size, decimals=6, frac=0.001):
+def one_slice(vectors, height, x_min, x_max, y_min, y_max, decimals=6, frac=0.001):
     vectors = np.around(vectors - 10 ** (-(decimals + 5)), decimals=decimals)
     lines_of_slice = []
     triangles_of_slice = []
@@ -85,7 +107,7 @@ def one_slice(vectors, heigth, x_min, x_max, y_min, y_max, box_size, decimals=6,
         upper = 0
         lower = 0
         for i in triangle:
-            if i[2] > heigth:
+            if i[2] > height:
                 upper += 1
             else:
                 lower += 1
@@ -125,7 +147,7 @@ def one_slice(vectors, heigth, x_min, x_max, y_min, y_max, box_size, decimals=6,
 
         #     find intersections between lines and plane
         #     with a line
-        z = heigth
+        z = height
         x_a = point_m[0] + (point_a[0] - point_m[0]) * (z - point_m[2]) / (point_a[2] - point_m[2])
         y_a = point_m[1] + (point_a[1] - point_m[1]) * (z - point_m[2]) / (point_a[2] - point_m[2])
 
@@ -182,13 +204,56 @@ def one_slice(vectors, heigth, x_min, x_max, y_min, y_max, box_size, decimals=6,
                 # print([int(round(x_min)) + i, int(round(y_min)) + j], plane[i,j])
 
     plane = plane % 2
+    # plot_points(plane)
     return plane
 
+def convert_to_current_height(slice, begin_height, box_size):
+    points = []
+    for i in range(slice.shape[0]):
+        for j in range(slice.shape[1]):
+            x_i = int(round(i*box_size+box_size/2))
+            y_i = int(round(j*box_size+box_size/2))
+            z_i = int(round(begin_height + box_size/2))
+            points.append([x_i,y_i,z_i])
 
-def one_height_slice(mesh,begin_height,box_size, fraction=3):
-    # slice_plane = slice(mesh)
-    plot_points(vectors, heigth, x_min, x_max, y_min, y_max, box_size)
-    pass
+    points = np.array(points)
+    # print(points)
+    return points
+
+def one_height_slice(mesh, begin_height, box_size, fraction=3):
+    vectors = mesh.vectors
+    x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(your_mesh)
+    step = box_size // fraction
+    height = begin_height
+    slice_plane = one_slice(vectors, height, x_min, x_max, y_min, y_max)
+
+    # for iter in range(fraction-2):
+    #     height += step
+    #     slice_plane += one_slice(vectors, height, x_min, x_max, y_min, y_max)
+
+    slice_plane += one_slice(vectors, begin_height+box_size, x_min, x_max, y_min, y_max)
+
+    slice_plane[slice_plane != 0] = 1
+    plot_points(slice_plane)
+    length = math.ceil(slice_plane.shape[0]/box_size)
+    width = math.ceil(slice_plane.shape[1]/box_size)
+    slice_plane_cubes = np.zeros((length, width))
+    print(slice_plane.shape, slice_plane_cubes.shape)
+
+    for i in range(slice_plane_cubes.shape[0]):
+        for j in range(slice_plane_cubes.shape[1]):
+            for k in range(box_size**2):
+                if(slice_plane_cubes[i,j] != 0):
+                    break
+                else:
+                    if (i*box_size+k%box_size < slice_plane.shape[0]) and (j*box_size + k//box_size < slice_plane.shape[1]):
+                        slice_plane_cubes[i,j] = slice_plane[i*box_size+k%box_size, j*box_size + k//box_size]
+
+
+    plot_points(slice_plane_cubes)
+    converted_plane = convert_to_current_height(slice_plane_cubes,begin_height,box_size)
+    plot3d_points(converted_plane)
+    return slice_plane
 
 
 def slice(mesh, bottom, upper):
@@ -248,7 +313,8 @@ your_mesh = mesh.Mesh.from_file('Models/PLA_190to220_stl_file.stl')
 
 x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(your_mesh)
 
-one_slice(your_mesh.vectors, 3, x_min, x_max, y_min, y_max, 10)
+# one_slice(your_mesh.vectors, 3, x_min, x_max, y_min, y_max, 10)
+one_height_slice(your_mesh, 0, 10)
 # one_slice(your_mesh.vectors, 13, abs(x_max-x_min), abs(y_max-y_min),10)
 # one_slice(your_mesh.vectors, 19, abs(x_max-x_min), abs(y_max-y_min),10)
 # print(your_mesh.normals)

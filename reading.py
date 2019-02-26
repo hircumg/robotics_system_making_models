@@ -31,14 +31,14 @@ def plot3d_points(points):
         x.append(point[0])
         y.append(point[1])
         z.append(point[2])
-    print(x)
-    print(y)
-    print(z)
-    ax.scatter3D(x, y, z, c='r', marker='o')
+    # print(x)
+    # print(y)
+    # print(z)
+    ax.scatter3D(x, y, z, c='b', marker='o')
 
-    ax.set_xlabel('X Label')
-    ax.set_ylabel('Y Label')
-    ax.set_zlabel('Z Label')
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
 
     plt.show()
 
@@ -75,6 +75,7 @@ def plot_vectors(vectors):
 
 
 def is_inside(point, polygon):
+
     c_west = 0
     i = 0
     for line in polygon:
@@ -113,13 +114,11 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
                 lower += 1
         if upper != 0 and lower != 0:
             triangles_of_slice.append([triangle.copy(), upper])
-    # triangles_of_slice = np.array(triangles_of_slice)
-    # print( np.array(triangles_of_slice).shape)
+
     # plot_vectors(triangles_of_slice)
     print("Triangles taken for height %.3f" %(height))
     # save only line of triangles in horizontal plane
     for triangle, upper in triangles_of_slice:
-
         # find points for neadble lines
         point_m = None
         point_a = None
@@ -143,7 +142,6 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
             point_m = triangle[max_ind]
             point_a = triangle[(max_ind + 1) % 3]
             point_b = triangle[(max_ind + 2) % 3]
-        # print(point_m[2], point_a[2], point_b[2], upper)
 
         #     find intersections between lines and plane
         #     with a line
@@ -156,10 +154,9 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
         lines_of_slice.append([[x_a, y_a], [x_b, y_b]])
     lines_of_slice = np.array(lines_of_slice)
     lines_of_slice = np.around(lines_of_slice - 10 ** (-(decimals + 5)), decimals=decimals)
-    # print(lines_of_slice)
-    # print(lines_of_slice.shape)
     print("Lines taken for height %.3f" % (height))
     # plot_lines(lines_of_slice)
+
 
     # separate borders
     separated_lines_of_slice = []
@@ -169,7 +166,6 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
         closed_line_of_slice = [lines_of_slice[0]]
         last_point = lines_of_slice[0][1]
         lines_of_slice = np.delete(lines_of_slice, 0, 0)
-        # print(last_line)
         next_index = 1
         while next_index != None:
             next_index = None
@@ -187,29 +183,30 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
                     last_point = lines_of_slice[next_index][0]
                     lines_of_slice = np.delete(lines_of_slice, next_index, 0)
                     break
-
-            # print(next_index, last_line)
         separated_lines_of_slice.append(closed_line_of_slice)
 
     print("Borders separated height %.3f" % (height))
 
-
     # create dotted plane
-    # TODO simplify convertions into approximated plane
-    plane = np.zeros((int(round(abs(x_max-x_min))),int(round(abs(y_max-y_min)))))
-    # print(plane.shape)
-    # print(is_inside([-56, 6], separated_lines_of_slice[0]))
-    for cur_lines_of_slice in separated_lines_of_slice:
-        for i in range(plane.shape[0]):
-            for j in range(plane.shape[1]):
-                plane[i,j] += is_inside([int(round(x_min)) + i, int(round(y_min)) + j], cur_lines_of_slice)
-                # print([int(round(x_min)) + i, int(round(y_min)) + j], plane[i,j])
-            if i % 10 == 0:
-                pers = i/plane.shape[0]
-                print("Points converted for %.3f persent separated height %.3f" % (pers,height))
-    plane = plane % 2
-    # plot_points(plane)
-    return plane
+    length = math.ceil(abs(x_max - x_min) / box_size)
+    width = math.ceil(abs(y_max - y_min) / box_size)
+    slice_plane_cubes = np.zeros((length, width))
+    for i in range(length):
+        for j in range(width):
+            for k in range(box_size ** 2):
+                if (slice_plane_cubes[i, j] != 0):
+                    break
+                else:
+                    if (i * box_size + k % box_size < abs(x_max - x_min)) and (
+                            j * box_size + k // box_size < abs(y_max - y_min)):
+                        for cur_lines_of_slice in separated_lines_of_slice:
+                            slice_plane_cubes[i, j] += is_inside([int(round(x_min)) + i * box_size + k % box_size,
+                                                                  int(round(y_min)) + j * box_size + k // box_size], cur_lines_of_slice)
+                        slice_plane_cubes[i, j] = slice_plane_cubes[i, j] % 2
+
+
+    # plot_points(slice_plane_cubes)
+    return slice_plane_cubes
 
 def convert_to_current_height(slice, begin_height, box_size):
     points = []
@@ -244,24 +241,9 @@ def one_height_slice(mesh, begin_height, box_size, fraction=3):
     print("Temp slice on height %.3f made" % (begin_height+box_size))
 
     slice_plane[slice_plane != 0] = 1
-    # plot_points(slice_plane)
-    length = math.ceil(slice_plane.shape[0]/box_size)
-    width = math.ceil(slice_plane.shape[1]/box_size)
-    slice_plane_cubes = np.zeros((length, width))
-    # print(slice_plane.shape, slice_plane_cubes.shape)
 
-
-    for i in range(slice_plane_cubes.shape[0]):
-        for j in range(slice_plane_cubes.shape[1]):
-            for k in range(box_size**2):
-                if(slice_plane_cubes[i,j] != 0):
-                    break
-                else:
-                    if (i*box_size+k%box_size < slice_plane.shape[0]) and (j*box_size + k//box_size < slice_plane.shape[1]):
-                        slice_plane_cubes[i,j] = slice_plane[i*box_size+k%box_size, j*box_size + k//box_size]
-
-    # plot_points(slice_plane_cubes)
-    converted_plane = convert_to_current_height(slice_plane_cubes,begin_height,box_size)
+    plot_points(slice_plane)
+    converted_plane = convert_to_current_height(slice_plane,begin_height,box_size)
     # plot3d_points(converted_plane)
     return converted_plane
 

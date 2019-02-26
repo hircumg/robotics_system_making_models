@@ -97,7 +97,7 @@ def is_inside(point, polygon):
     return c_west
 
 
-def one_slice(vectors, height, x_min, x_max, y_min, y_max, decimals=6, frac=0.001):
+def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6, frac=0.001):
     # vectors = np.around(vectors - 10 ** (-(decimals + 5)), decimals=decimals)
     lines_of_slice = []
     triangles_of_slice = []
@@ -192,10 +192,10 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, decimals=6, frac=0.00
         separated_lines_of_slice.append(closed_line_of_slice)
 
     print("Borders separated height %.3f" % (height))
-    # print(len(separated_lines_of_slice))
-    # for s_lines_of_slice in separated_lines_of_slice:
-    #     plot_lines(s_lines_of_slice)
+
+
     # create dotted plane
+    # TODO simplify convertions into approximated plane
     plane = np.zeros((int(round(abs(x_max-x_min))),int(round(abs(y_max-y_min)))))
     # print(plane.shape)
     # print(is_inside([-56, 6], separated_lines_of_slice[0]))
@@ -216,10 +216,11 @@ def convert_to_current_height(slice, begin_height, box_size):
 
     for i in range(slice.shape[0]):
         for j in range(slice.shape[1]):
-            x_i = int(round(i*box_size+box_size/2))
-            y_i = int(round(j*box_size+box_size/2))
-            z_i = int(round(begin_height + box_size/2))
-            points.append([x_i,y_i,z_i])
+            if(slice[i, j] > 0):
+                x_i = int(round(i*box_size+box_size/2))
+                y_i = int(round(j*box_size+box_size/2))
+                z_i = int(round(begin_height + box_size/2))
+                points.append([x_i,y_i,z_i])
 
     points = np.array(points)
     # print(points)
@@ -232,14 +233,14 @@ def one_height_slice(mesh, begin_height, box_size, fraction=3):
     height = begin_height
 
 
-    slice_plane = one_slice(vectors, height, x_min, x_max, y_min, y_max)
+    slice_plane = one_slice(vectors, height, x_min, x_max, y_min, y_max,box_size)
     print("Temp slice on height %.3f made" %(height))
     for iter in range(fraction-2):
         height += step
-        slice_plane += one_slice(vectors, height, x_min, x_max, y_min, y_max)
+        slice_plane += one_slice(vectors, height, x_min, x_max, y_min, y_max,box_size)
         print("Temp slice on height %.3f made" % (height))
 
-    slice_plane += one_slice(vectors, begin_height+box_size, x_min, x_max, y_min, y_max)
+    slice_plane += one_slice(vectors, begin_height+box_size, x_min, x_max, y_min, y_max,box_size)
     print("Temp slice on height %.3f made" % (begin_height+box_size))
 
     slice_plane[slice_plane != 0] = 1
@@ -278,14 +279,16 @@ def slice(mesh, box_size, fraction= 3):
         sliced_image.extend(temp_slice)
         current_height = i * box_size + box_size/2
         time_slice = time.time() - time_slice
-        print("Height is: %.3f made. Taken time: %i ms" %(current_height,time_slice))
+        print("Height is: %.3f made. Taken time: %i s" %(current_height,time_slice))
     sliced_image = np.array(sliced_image)
     # print(sliced_image)
     # print(sliced_image.shape)
     plot3d_points(sliced_image)
     slicing_time = time.time() - begining_time
-    print('Slicing finished with time %i ms' %(slicing_time))
+    print('Slicing finished with time %i s' %(slicing_time))
     return sliced_image
+
+
 
 
 def find_mins_maxs(mesh, decimals=6):
@@ -342,21 +345,4 @@ your_mesh = mesh.Mesh.from_file('Models/Minecraft_Hanger_hand_1.stl')
 
 # x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(your_mesh)
 
-# one_slice(your_mesh.vectors, 3, x_min, x_max, y_min, y_max, 10)
 slice(your_mesh, 10)
-# one_slice(your_mesh.vectors, 13, abs(x_max-x_min), abs(y_max-y_min),10)
-# one_slice(your_mesh.vectors, 19, abs(x_max-x_min), abs(y_max-y_min),10)
-# print(your_mesh.normals)
-# print(find_mins_maxs(your_mesh))
-
-# # Create a new plot
-# figure = pyplot.figure()
-# axes = mplot3d.Axes3D(figure)
-#
-# axes.add_collection3d(mplot3d.art3d.Poly3DCollection(your_mesh.vectors))
-#
-# # Auto scale to the mesh size
-# scale = your_mesh.points.flatten('C')
-# axes.auto_scale_xyz(scale, scale, scale)
-# # Show the plot to the screen
-# pyplot.show()

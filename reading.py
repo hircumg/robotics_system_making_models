@@ -7,13 +7,12 @@ from mpl_toolkits.mplot3d import Axes3D
 import time
 
 
-
 def plot_lines(lines):
-    '''
+    """
     Plotting border of slice
     :param lines: array of lines for plotting
     :return: nothing
-    '''
+    """
     for line in lines:
         plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='o', markerfacecolor='red', markersize=5,
                  color='skyblue', linewidth=4)
@@ -21,12 +20,12 @@ def plot_lines(lines):
     plt.show()
 
 def plot_points(points):
-    '''
+    """
     Plotting array where indexes is coordinates of plotting points.
     Point will be plotted only if element value is 1
-    :param points: two-dimentional binary array
+    :param points: two-dimensional binary array
     :return: nothing
-    '''
+    """
     for i in range(points.shape[0]):
         for j in range(points.shape[1]):
             if points[i,j] % 2 ==  1:
@@ -34,11 +33,11 @@ def plot_points(points):
     plt.show()
 
 def plot3d_points(points):
-    '''
+    """
     Plotting list of points in 3d plot
     :param points: list of 3d points
     :return: nothing
-    '''
+    """
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     x = []
@@ -57,12 +56,12 @@ def plot3d_points(points):
     plt.show()
 
 def plot_points3d(points3d):
-    '''
+    """
     Plotting array where indexes is coordinates of plotting points.
     Point will be plotted only if element value is 1
-    :param points: two-dimentional binary array
+    :param points3d: two or three dimensional binary array
     :return: nothing
-    '''
+    """
 
 
     fig = plt.figure()
@@ -70,13 +69,22 @@ def plot_points3d(points3d):
     x = []
     y = []
     z = []
-    for i in range(points3d.shape[0]):
-        for j in range(points3d.shape[1]):
-            for k in range(points3d.shape[2]):
-                if points3d[i,j,k] % 2 ==  1:
-                    x.append(i)
-                    y.append(j)
-                    z.append(k)
+
+    if len(points3d.shape) == 3:
+        for i in range(points3d.shape[0]):
+            for j in range(points3d.shape[1]):
+                for k in range(points3d.shape[2]):
+                    if points3d[i,j,k] % 2 ==  1:
+                        x.append(i)
+                        y.append(j)
+                        z.append(k)
+    elif len(points3d.shape) == 2:
+        for i in range(points3d.shape[0]):
+            for j in range(points3d.shape[1]):
+                    if points3d[i,j] % 2 ==  1:
+                        x.append(i)
+                        y.append(j)
+                        z.append(0)
     ax.scatter3D(x, y, z, c='b', marker='o')
 
     ax.set_xlabel('X')
@@ -88,12 +96,12 @@ def plot_points3d(points3d):
 
 
 def is_inside(point, polygon):
-    '''
+    """
     Check is given 2d point inside given polygon or not
     :param point: 2d point for check
     :param polygon: list of lines of polygons
     :return: boolean value: 1 if point is inside polygon otherwise will be returned 0
-    '''
+    """
     c_west = 0
     i = 0
     for line in polygon:
@@ -116,7 +124,7 @@ def is_inside(point, polygon):
 
 
 def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6, frac=0.001):
-    '''
+    """
     make boxed slice for given height
     :param vectors: array of 3d object
     :param height: heeigth for slice
@@ -128,7 +136,7 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
     :param box_size: size of the cube box
     :param frac: error in comparison
     :return: 2d binary array where 1 means that there`s a cube
-    '''
+    """
 
 
     lines_of_slice = []
@@ -185,7 +193,7 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
     lines_of_slice = np.array(lines_of_slice)
     lines_of_slice = np.around(lines_of_slice - 10 ** (-(decimals + 5)), decimals=decimals)
     print("Lines taken for height %.3f" % (height))
-    plot_lines(lines_of_slice)
+    # plot_lines(lines_of_slice)
 
     # create dotted plane from given group of borders
     length = math.ceil(abs(x_max - x_min) / box_size)
@@ -204,7 +212,6 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
                                                              lines_of_slice)
                         slice_plane_cubes[i, j] = slice_plane_cubes[i, j] % 2
     print("Slice converted into 2d binary array for height %.3f" % (height))
-
 
     # plot_points(slice_plane_cubes)
     return slice_plane_cubes
@@ -243,39 +250,12 @@ def one_height_slice(mesh, begin_height, box_size, fraction=3):
 
     slice_plane[slice_plane != 0] = 1
 
-    plot_points(slice_plane)
-    converted_plane = convert_to_current_height(slice_plane,begin_height,box_size)
-    # plot3d_points(converted_plane)
-    # return converted_plane
+    # plot_points(slice_plane)
     return slice_plane
 
-# def one_height_slice(mesh, begin_height, box_size, fraction=3):
-#     vectors = mesh.vectors.copy()
-#     x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(your_mesh)
-#     step = box_size // fraction
-#     height = begin_height
-#
-#
-#     slice_plane = one_slice(vectors, height, x_min, x_max, y_min, y_max,box_size)
-#     print("Temp slice on height %.3f made" %(height))
-#     for iter in range(fraction-2):
-#         height += step
-#         slice_plane += one_slice(vectors, height, x_min, x_max, y_min, y_max,box_size)
-#         print("Temp slice on height %.3f made" % (height))
-#
-#     slice_plane += one_slice(vectors, begin_height+box_size, x_min, x_max, y_min, y_max,box_size)
-#     print("Temp slice on height %.3f made" % (begin_height+box_size))
-#
-#     slice_plane[slice_plane != 0] = 1
-#
-#     plot_points(slice_plane)
-#     converted_plane = convert_to_current_height(slice_plane,begin_height,box_size)
-#     # plot3d_points(converted_plane)
-#     return converted_plane
 
 
 def slice(mesh, box_size, fraction= 3):
-    sliced_image =  []
     begining_time = time.time()
     x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(your_mesh)
     print("Size of the 3d object: x:[%.3f, %.3f], y:[%.3f, %.3f], z: %.3f" %(x_min, x_max, y_min, y_max, z_max))
@@ -283,49 +263,55 @@ def slice(mesh, box_size, fraction= 3):
     length = math.ceil(abs(x_max - x_min) / box_size)
     width = math.ceil(abs(y_max - y_min) / box_size)
     z_size = int(round(z_max / box_size))
-
     sliced_image = np.zeros((length,width,z_size))
-    print("Initial sliced image shape: ", sliced_image.shape)
+
     for i in range(z_size):
         time_slice = time.time()
         temp_slice = one_height_slice(mesh, i*box_size, box_size, fraction=fraction)
         sliced_image[:,:,i] = temp_slice
-        # sliced_image.extend(temp_slice)
-        print("Sliced image shape: ", sliced_image.shape)
-        # print("Sliced image: ", sliced_image)
         current_height = i * box_size + box_size/2
         time_slice = time.time() - time_slice
         print("Height is: %.3f made. Taken time: %i s" %(current_height,time_slice))
-    # sliced_image = np.array(sliced_image)
-    # print(sliced_image)
+
     print("Sliced image shape: ", sliced_image.shape)
-    print("Sliced image: ", sliced_image)
     plot_points3d(sliced_image)
     slicing_time = time.time() - begining_time
     print('Slicing finished with time %i s' %(slicing_time))
     return sliced_image
 
-# def slice(mesh, box_size, fraction= 3):
-#     sliced_image =  []
-#     begining_time = time.time()
-#     x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(your_mesh)
-#     print("Size of the 3d object: x:[%.3f, %.3f], y:[%.3f, %.3f], z: %.3f" %(x_min, x_max, y_min, y_max, z_max))
-#     z_size = int(round(z_max / box_size))
-#
-#     for i in range(z_size):
-#         time_slice = time.time()
-#         temp_slice = one_height_slice(mesh, i*box_size, box_size, fraction=fraction)
-#         sliced_image.extend(temp_slice)
-#         current_height = i * box_size + box_size/2
-#         time_slice = time.time() - time_slice
-#         print("Height is: %.3f made. Taken time: %i s" %(current_height,time_slice))
-#     sliced_image = np.array(sliced_image)
-#     # print(sliced_image)
-#     # print(sliced_image.shape)
-#     plot3d_points(sliced_image)
-#     slicing_time = time.time() - begining_time
-#     print('Slicing finished with time %i s' %(slicing_time))
-#     return sliced_image
+def get_max_side(sliced_mesh):
+    best_substrate = []
+    best_substrate.append(sliced_mesh[0,:,:].sum()) # x_min
+    best_substrate.append(sliced_mesh[-1,:,:].sum()) # x_max
+    best_substrate.append(sliced_mesh[:,0,:].sum()) # y_min
+    best_substrate.append(sliced_mesh[:,-1,:].sum()) # y_max
+    best_substrate.append(sliced_mesh[:,:,0].sum()) # z_min
+    best_substrate.append(sliced_mesh[:,:,-1].sum()) # z_max
+    best_substrate = np.array(best_substrate)
+    print(best_substrate, best_substrate.argmax())
+    return best_substrate.argmax()
+
+
+
+def provide_best_substrate(sliced_mesh):
+    new_mesh = sliced_mesh.copy()
+    best_substate_ind = get_max_side(sliced_mesh)
+    if best_substate_ind == 0:
+        new_mesh = np.rot90(new_mesh, 1, (1, 2))
+    elif best_substate_ind == 1:
+        new_mesh = np.rot90(new_mesh, 1, (2, 1))
+    elif best_substate_ind == 2:
+        new_mesh = np.rot90(new_mesh, 1, (0, 2))
+    elif best_substate_ind == 3:
+        new_mesh = np.rot90(new_mesh, 1, (2, 0))
+    elif best_substate_ind == 4:
+        pass
+    elif best_substate_ind == 5:
+        new_mesh = np.rot90(new_mesh, 2, (2, 0))
+    else:
+        new_mesh = sliced_mesh.copy()
+
+    return new_mesh
 
 
 def find_mins_maxs(mesh, decimals=6):
@@ -381,4 +367,6 @@ if __name__ == '__main__':
     # your_mesh = mesh.Mesh.from_file('Models/xyzCalibration_cube.stl')
 
     my_sliced_mesh = slice(your_mesh, 10)
-    # print(my_sliced_mesh)
+    new_sliced_mesh = provide_best_substrate(my_sliced_mesh)
+    plot_points3d(new_sliced_mesh)
+

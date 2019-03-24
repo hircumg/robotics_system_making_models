@@ -87,8 +87,8 @@ def get_building_sequence(sliced_mesh, box_size):
                             'left': (i - 1 >= 0) and (sliced_mesh[i - 1, j, k] > 0),
                             'down': False,
                             'right': False,
-                            'bottom': k > 0,
-                            'top': False}
+                            'top': False,
+                            'bottom': k > 0}
                     if k == 0 or sliced_mesh[i, j, k - 1] == 2:
                         sequence.append({'x': i * box_size, 'y': j * box_size, 'z': k * box_size, 'glue': glue})
                         sliced_mesh[i, j, k] = 2
@@ -109,8 +109,8 @@ def get_building_sequence(sliced_mesh, box_size):
                             'left': (i - 1 >= 0) (sliced_mesh[i - 1, j, k] > 0),
                             'down': (j - 1 >= 0) and (sliced_mesh[i, j - 1, k] > 0) ,
                             'right': (i + 1 < mesh_size[0]) and (sliced_mesh[i + 1, j, k] > 0),
-                            'bottom': False,
-                            'top': False}
+                            'top': False,
+                            'bottom': False}
                     sliced_mesh[item[0], item[1], k] = 2
                     # sequence.append([item[0]*box_size, item[1]*box_size, k * box_size])
                     sequence.append({'x': item[0]*box_size, 'y': item[1]*box_size, 'z': k * box_size, 'glue': glue})

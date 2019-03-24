@@ -83,28 +83,44 @@ def get_building_sequence(sliced_mesh, box_size):
         for i in range(mesh_size[0]):
             for j in range(mesh_size[1]):
                 if(sliced_mesh[i,j,k] == 1):
-                    if(k != 0 and sliced_mesh[i,j,k-1] == 1):
-                        sequence.append([i*box_size, j*box_size, k * box_size])
+                    glue = {'up': (sliced_mesh[i, j - 1, k] > 0) and (j - 1 >= 0),
+                            'left': (sliced_mesh[i - 1, j, k] > 0) and (i - 1 >= 0),
+                            'down': False,
+                            'right': False,
+                            'bottom': k > 0,
+                            'top': False}
+                    if k == 0 or sliced_mesh[i, j, k - 1] == 2:
+                        sequence.append({'x': i * box_size, 'y': j * box_size, 'z': k * box_size, 'glue': glue})
+                        sliced_mesh[i, j, k] = 2
                     else:
                         in_queue.append([i,j])
 
+        print("Initially feft number of external elements %i for %i" % (len(in_queue), k))
         for j in range(len(in_queue)):
             i = 0
             while i < len(in_queue):
                 item = in_queue[i]
-                step = (sliced_mesh[item[0]-1, item[1], k] * int(item[0] - 1 >= 0) +
-                        sliced_mesh[(item[0] + 1) % mesh_size[0], item[1], k] * int(item[0] + 1 < mesh_size[0]) +
-                        sliced_mesh[item[0], item[1] - 1, k] * int(item[1] - 1 >= 0) +
-                        sliced_mesh[item[0], (item[1] + 1) % mesh_size[1], k] * int(item[1] + 1 < mesh_size[1]))
+                step = (int(sliced_mesh[item[0]-1, item[1], k] == 2) * int(item[0] - 1 >= 0) +
+                        int(sliced_mesh[(item[0] + 1) % mesh_size[0], item[1], k] == 2) * int(item[0] + 1 < mesh_size[0]) +
+                        int(sliced_mesh[item[0], item[1] - 1, k] == 2) * int(item[1] - 1 >= 0) +
+                        int(sliced_mesh[item[0], (item[1] + 1) % mesh_size[1], k] == 2) * int(item[1] + 1 < mesh_size[1]))
                 if(step > 0):
-                    sequence.append([item[0]*box_size, item[1]*box_size, k * box_size])
+                    glue = {'up': (j - 1 >= 0) and (sliced_mesh[i, j - 1, k] > 0) ,
+                            'left': (i - 1 >= 0) (sliced_mesh[i - 1, j, k] > 0),
+                            'down': (j + 1 < mesh_size[1]) and (sliced_mesh[i, j + 1, k] > 0),
+                            'right': (i + 1 < mesh_size[0]) and (sliced_mesh[i + 1, j, k] > 0),
+                            'bottom': False,
+                            'top': False}
+                    sliced_mesh[item[0], item[1], k] = 2
+                    # sequence.append([item[0]*box_size, item[1]*box_size, k * box_size])
+                    sequence.append({'x': item[0]*box_size, 'y': item[1]*box_size, 'z': k * box_size, 'glue': glue})
                     in_queue.pop(i)
                 else:
                     i += 1
             if(len(in_queue) == 0):
                 break
 
-        print("Left len of external: %i for %i" %(len(in_queue), k))
+        print("Left number of external elements %i for %i" %(len(in_queue), k))
 
     return sequence
 
@@ -123,7 +139,9 @@ if __name__ == '__main__':
 
     plot_points3d(my_sliced_mesh,box)
 
-    len_of_slice = len(my_sliced_mesh[my_sliced_mesh == 1])
+    len_of_slice = len(my_sliced_mesh[my_sliced_mesh >= 1])
     sliced_sequence = get_building_sequence(my_sliced_mesh, box)
     print(len_of_slice, len(sliced_sequence))
-    print(sliced_sequence)
+    print(my_sliced_mesh[my_sliced_mesh == 1])
+    for seq in sliced_sequence:
+        print(seq.get('glue'))

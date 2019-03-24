@@ -21,13 +21,13 @@ def provide_best_substrate(sliced_mesh):
     new_mesh = sliced_mesh.copy()
     best_substrate_ind = get_max_side(sliced_mesh)
     if best_substrate_ind == 0:
-        new_mesh = np.rot90(new_mesh, 1, (1, 2))
-    elif best_substrate_ind == 1:
-        new_mesh = np.rot90(new_mesh, 1, (2, 1))
-    elif best_substrate_ind == 2:
         new_mesh = np.rot90(new_mesh, 1, (0, 2))
-    elif best_substrate_ind == 3:
+    elif best_substrate_ind == 1:
         new_mesh = np.rot90(new_mesh, 1, (2, 0))
+    elif best_substrate_ind == 2:
+        new_mesh = np.rot90(new_mesh, 1, (1, 2))
+    elif best_substrate_ind == 3:
+        new_mesh = np.rot90(new_mesh, 1, (2, 1))
     elif best_substrate_ind == 4:
         pass
     elif best_substrate_ind == 5:
@@ -35,7 +35,7 @@ def provide_best_substrate(sliced_mesh):
     else:
         new_mesh = sliced_mesh.copy()
 
-    return new_mesh
+    return new_mesh, best_substrate_ind
 
 def plot_points3d(points3d, box_size):
     """
@@ -106,7 +106,7 @@ def get_building_sequence(sliced_mesh, box_size):
                         int(sliced_mesh[item[0], (item[1] + 1) % mesh_size[1], k] == 2) * int(item[1] + 1 < mesh_size[1]))
                 if(step > 0):
                     glue = {'up': (j + 1 < mesh_size[1]) and (sliced_mesh[i, j + 1, k] > 0),
-                            'left': (i - 1 >= 0) (sliced_mesh[i - 1, j, k] > 0),
+                            'left': (i - 1 >= 0) and (sliced_mesh[i - 1, j, k] > 0),
                             'down': (j - 1 >= 0) and (sliced_mesh[i, j - 1, k] > 0) ,
                             'right': (i + 1 < mesh_size[0]) and (sliced_mesh[i + 1, j, k] > 0),
                             'top': False,
@@ -130,20 +130,22 @@ if __name__ == '__main__':
     box  = 10
     # Load the STL files
     # your_mesh = mesh.Mesh.from_file('Models/PLA_190to220_stl_file.stl')
-    your_mesh = mesh.Mesh.from_file('Models/Minecraft_Hanger_hand_1.stl')
+    # your_mesh = mesh.Mesh.from_file('Models/Minecraft_Hanger_hand_1.stl')
+    # your_mesh = mesh.Mesh.from_file('Models/inclined_plane.stl')
+    # your_mesh = mesh.Mesh.from_file('Models/for_test_1.stl')
+    your_mesh = mesh.Mesh.from_file('Models/for_test_2.stl')
     # your_mesh = mesh.Mesh.from_file('Models/Groot_v1_1M_Merged.stl')
     # your_mesh = mesh.Mesh.from_file('Models/xyzCalibration_cube.stl')
 
     my_sliced_mesh = make_slice(your_mesh, box)
-    my_sliced_mesh = provide_best_substrate(my_sliced_mesh)
+
+    # plot_points3d(my_sliced_mesh, box)
+    # my_sliced_mesh, orient = provide_best_substrate(my_sliced_mesh)
 
     plot_points3d(my_sliced_mesh,box)
 
     len_of_slice = len(my_sliced_mesh[my_sliced_mesh >= 1])
     sliced_sequence = get_building_sequence(my_sliced_mesh, box)
-    print(len_of_slice, len(sliced_sequence))
-    print(my_sliced_mesh[my_sliced_mesh == 1])
+
     for seq in sliced_sequence:
         print(seq)
-        # print(seq.get('glue'))
-        # print("(%i, %i, %i)" %(seq.get('x'), seq.get('y'), seq.get('z')))

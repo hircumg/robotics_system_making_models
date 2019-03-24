@@ -80,11 +80,11 @@ def get_building_sequence(sliced_mesh, box_size):
     mesh_size = sliced_mesh.shape
     in_queue = []
     for k in range(mesh_size[2]):
-        for i in range(mesh_size[0]):
-            for j in range(mesh_size[1]):
+        for j in reversed(range(mesh_size[1])):
+            for i in range(mesh_size[0]):
                 if(sliced_mesh[i,j,k] == 1):
-                    glue = {'up': (sliced_mesh[i, j - 1, k] > 0) and (j - 1 >= 0),
-                            'left': (sliced_mesh[i - 1, j, k] > 0) and (i - 1 >= 0),
+                    glue = {'up': (j + 1 < mesh_size[1]) and (sliced_mesh[i, j + 1, k] > 0),
+                            'left': (i - 1 >= 0) and (sliced_mesh[i - 1, j, k] > 0),
                             'down': False,
                             'right': False,
                             'bottom': k > 0,
@@ -105,9 +105,9 @@ def get_building_sequence(sliced_mesh, box_size):
                         int(sliced_mesh[item[0], item[1] - 1, k] == 2) * int(item[1] - 1 >= 0) +
                         int(sliced_mesh[item[0], (item[1] + 1) % mesh_size[1], k] == 2) * int(item[1] + 1 < mesh_size[1]))
                 if(step > 0):
-                    glue = {'up': (j - 1 >= 0) and (sliced_mesh[i, j - 1, k] > 0) ,
+                    glue = {'up': (j + 1 < mesh_size[1]) and (sliced_mesh[i, j + 1, k] > 0),
                             'left': (i - 1 >= 0) (sliced_mesh[i - 1, j, k] > 0),
-                            'down': (j + 1 < mesh_size[1]) and (sliced_mesh[i, j + 1, k] > 0),
+                            'down': (j - 1 >= 0) and (sliced_mesh[i, j - 1, k] > 0) ,
                             'right': (i + 1 < mesh_size[0]) and (sliced_mesh[i + 1, j, k] > 0),
                             'bottom': False,
                             'top': False}
@@ -144,4 +144,6 @@ if __name__ == '__main__':
     print(len_of_slice, len(sliced_sequence))
     print(my_sliced_mesh[my_sliced_mesh == 1])
     for seq in sliced_sequence:
-        print(seq.get('glue'))
+        print(seq)
+        # print(seq.get('glue'))
+        # print("(%i, %i, %i)" %(seq.get('x'), seq.get('y'), seq.get('z')))

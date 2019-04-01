@@ -17,8 +17,25 @@ def plot_lines(lines):
 
     plt.show()
 
+def plot_vectors(vectors):
+    from matplotlib import pyplot
+    from mpl_toolkits import mplot3d
+    # Create a new plot
+    figure = pyplot.figure()
+    axes = mplot3d.Axes3D(figure)
 
-def plot_points(points):
+
+    axes.add_collection3d(mplot3d.art3d.Poly3DCollection(vectors))
+
+    # Auto scale to the mesh size
+    scale = np.concatenate([v[0] for v in vectors]).flatten(-1)
+    axes.auto_scale_xyz(scale, scale, scale)
+
+    # Show the plot to the screen
+    pyplot.show()
+
+
+def plot_points(points, box_size = 1):
     """
     Plotting array where indexes is coordinates of plotting points.
     Point will be plotted only if element value is 1
@@ -28,10 +45,8 @@ def plot_points(points):
     for i in range(points.shape[0]):
         for j in range(points.shape[1]):
             if points[i, j] % 2 == 1:
-                plt.plot(i, j, 'bo')
+                plt.plot(i * box_size, j * box_size, 'bo')
     plt.show()
-
-
 
 
 
@@ -80,7 +95,7 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
     """
     lines_of_slice = []
     triangles_of_slice = []
-
+    # plot_vectors(vectors)
     # left only triangles which crosses horizontal plane
     for triangle in vectors:
         upper = 0
@@ -92,7 +107,7 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
                 lower += 1
         if upper != 0 and lower != 0:
             triangles_of_slice.append([triangle.copy(), upper])
-
+    plot_vectors([i[0] for i in triangles_of_slice])
     print("Triangles taken for height %.3f" % height)
     # save only line of triangles in horizontal plane
     for triangle, upper in triangles_of_slice:
@@ -132,7 +147,7 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
     lines_of_slice = np.array(lines_of_slice)
     lines_of_slice = np.around(lines_of_slice - 10 ** (-(decimals + 5)), decimals=decimals)
     print("Lines taken for height %.3f" % (height))
-    # plot_lines(lines_of_slice)
+    plot_lines(lines_of_slice)
 
     # create dotted plane from given group of borders
     length = math.ceil(abs(x_max - x_min) / box_size)
@@ -152,7 +167,7 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
                         slice_plane_cubes[i, j] = slice_plane_cubes[i, j] % 2
     print("Slice converted into 2d binary array for height %.3f" % (height))
 
-    # plot_points(slice_plane_cubes)
+    plot_points(slice_plane_cubes)
     return slice_plane_cubes
 
 
@@ -167,7 +182,7 @@ def convert_to_current_height(slice, begin_height, box_size):
                 z_i = int(round(begin_height + box_size / 2))
                 points.append([x_i, y_i, z_i])
 
-    points = np.array(points)
+    points = np.array(points, box_size)
     # print(points)
     return points
 

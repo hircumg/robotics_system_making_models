@@ -124,6 +124,22 @@ def get_building_sequence(sliced_mesh, box_size):
 
     return sequence
 
+def plot_mesh(mesh):
+    from matplotlib import pyplot
+    from mpl_toolkits import mplot3d
+    # Create a new plot
+    figure = pyplot.figure()
+    axes = mplot3d.Axes3D(figure)
+
+
+    axes.add_collection3d(mplot3d.art3d.Poly3DCollection(mesh.vectors))
+
+    # Auto scale to the mesh size
+    scale = mesh.points.flatten(-1)
+    axes.auto_scale_xyz(scale, scale, scale)
+
+    # Show the plot to the screen
+    pyplot.show()
 
 
 if __name__ == '__main__':
@@ -131,16 +147,17 @@ if __name__ == '__main__':
     # Load the STL files
     # your_mesh = mesh.Mesh.from_file('Models/PLA_190to220_stl_file.stl')
     # your_mesh = mesh.Mesh.from_file('Models/Minecraft_Hanger_hand_1.stl')
-    # your_mesh = mesh.Mesh.from_file('Models/inclined_plane.stl')
+    your_mesh = mesh.Mesh.from_file('Models/inclined_plane.stl')
     # your_mesh = mesh.Mesh.from_file('Models/for_test_1.stl')
-    your_mesh = mesh.Mesh.from_file('Models/for_test_2.stl')
+    # your_mesh = mesh.Mesh.from_file('Models/for_test_2.stl')
     # your_mesh = mesh.Mesh.from_file('Models/Groot_v1_1M_Merged.stl')
     # your_mesh = mesh.Mesh.from_file('Models/xyzCalibration_cube.stl')
 
+    plot_mesh(your_mesh)
     my_sliced_mesh = make_slice(your_mesh, box)
 
-    # plot_points3d(my_sliced_mesh, box)
-    # my_sliced_mesh, orient = provide_best_substrate(my_sliced_mesh)
+    plot_points3d(my_sliced_mesh, box)
+    my_sliced_mesh, orient = provide_best_substrate(my_sliced_mesh)
 
     plot_points3d(my_sliced_mesh,box)
 
@@ -149,3 +166,4 @@ if __name__ == '__main__':
 
     for seq in sliced_sequence:
         print(seq)
+

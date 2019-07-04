@@ -217,8 +217,8 @@ def make_slice(mesh, box_size, fraction=3):
     x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(mesh)
     print("Size of the 3d object: x:[%.3f, %.3f], y:[%.3f, %.3f], z: %.3f" % (x_min, x_max, y_min, y_max, z_max))
 
-    length = math.ceil(abs(x_max - x_min) / box_size)
-    width = math.ceil(abs(y_max - y_min) / box_size)
+    length = int(math.ceil(abs(x_max - x_min) / box_size))
+    width = int(math.ceil(abs(y_max - y_min) / box_size))
     z_size = int(math.ceil(z_max / box_size))
 
     sliced_image = np.zeros((length, width, z_size))

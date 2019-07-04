@@ -147,7 +147,8 @@ if __name__ == '__main__':
     # Load the STL files
     # your_mesh = mesh.Mesh.from_file('Models/PLA_190to220_stl_file.stl')
     # your_mesh = mesh.Mesh.from_file('Models/Minecraft_Hanger_hand_1.stl')
-    your_mesh = mesh.Mesh.from_file('Models/inclined_plane.stl')
+    # your_mesh = mesh.Mesh.from_file('Models/inclined_plane.stl')
+    your_mesh = mesh.Mesh.from_file('Models/demo_1.stl')
     # your_mesh = mesh.Mesh.from_file('Models/for_test_1.stl')
     # your_mesh = mesh.Mesh.from_file('Models/for_test_2.stl')
     # your_mesh = mesh.Mesh.from_file('Models/Groot_v1_1M_Merged.stl')

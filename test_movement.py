@@ -103,6 +103,8 @@ building_seq = [[0.0,0.2,0.1],
                 [0.1,0.0,0.1],
                 [0.0,0.2,0.2]]
 
+building_seq = [[0.0,0.2,0.1],
+                [0.1,0.2,0.1]]
 
 print("Placing begun")
 
@@ -145,3 +147,5 @@ for point in building_seq:
     print("Finished with point %s" % point)
 
 print("Placing fished")
+rob.stop()
+rob.close()

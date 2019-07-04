@@ -14,7 +14,7 @@ def get_max_side(sliced_mesh):
                       sliced_mesh[:, :, -1].sum()]
 
     best_substrate = np.array(best_substrate)
-    print(best_substrate, best_substrate.argmax())
+    print("Sides values %s, best side %i" %(best_substrate, best_substrate.argmax()))
     return best_substrate.argmax()
 
 def provide_best_substrate(sliced_mesh):
@@ -95,7 +95,7 @@ def get_building_sequence(sliced_mesh, box_size):
                     else:
                         in_queue.append([i,j])
 
-        print("Initially feft number of external elements %i for %i" % (len(in_queue), k))
+        print("Initially left number of external elements %i for %i" % (len(in_queue), k))
         for j in range(len(in_queue)):
             i = 0
             while i < len(in_queue):
@@ -143,7 +143,7 @@ def plot_mesh(mesh):
 
 
 if __name__ == '__main__':
-    box  = 10
+    box  = 100
     # Load the STL files
     # your_mesh = mesh.Mesh.from_file('Models/PLA_190to220_stl_file.stl')
     # your_mesh = mesh.Mesh.from_file('Models/Minecraft_Hanger_hand_1.stl')
@@ -165,5 +165,6 @@ if __name__ == '__main__':
     sliced_sequence = get_building_sequence(my_sliced_mesh, box)
 
     for seq in sliced_sequence:
-        print(seq)
+        # print(seq)
+        print("[" + str(seq.get('x')/1000) + "," + str(seq.get('y')/1000) + "," + str((seq.get('z') + box)/1000) + "],")
 

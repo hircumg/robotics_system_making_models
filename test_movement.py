@@ -1,7 +1,7 @@
 import urx
 import numpy as np
 from elementary_transformations import rx,ry,rz,tx,ty,tz
-
+import time
 
 rob = urx.Robot("160.69.69.23")
 
@@ -41,38 +41,107 @@ y_new = y_new / np.linalg.norm(y_new)
 
 angle_x= np.arctan2(y_new[2], np.sqrt(y_new[0]**2 + y_new[1]**2))
 
-print(angle_x / np.pi * 180)
-print(angle_y / np.pi * 180)
-print(angle_z / np.pi * 180)
+# print(angle_x / np.pi * 180)
+# print(angle_y / np.pi * 180)
+# print(angle_z / np.pi * 180)
 # print(translation)
 
-
-
 rotation = rx(angle_x).dot(ry(angle_y)).dot(rz(angle_z))
-# print(rotation)
-
 H = translation.dot(rotation)
 # print(H)
 
-# v_2 = H.dot([0.5, 0.5, 0.5, 1])
-v_0 = H.dot([0, 0, 0.1, 1])
-v_1 = H.dot([1, 0, 0.1, 1])
-
-print(v_0)
-print(v_1)
 
 
 
-v = 0.7
+
+
+
+v = 0.5
 a = 0.2
+point_of_box = H.dot([1, 0, 0.1, 1])
+pos_of_box = [point_of_box[0], point_of_box[1], point_of_box[2], -3.14, 0, 0]
 
-# pos = [v_2[0], v_2[1], v_2[2], -3.14, 0, 0]
+pos = pos_of_box.copy()
+rob.movel((pos[0], pos[1], pos[2] + 0.2, pos[3], pos[4], pos[5]),v, a)
+
+
+
+
+# v_0 = H.dot([0, 0, 0.1, 1])
+# pos[:3] = v
+# rob.movel((pos[0],pos[1], pos[2], pos[3], pos[4], pos[5]),v, a, wait=False)
+# while rob.getForce() < 50:
+#     time.sleep(0.01)
+#     if not rob.is_program_running():
+#         break
+# rob.stopl()
+# exit(0)
+
+# v_0 = H.dot([0, 0, 0.1, 1])
+# v_1 = H.dot([1, 0, 0.1, 1])
+
+# print(v_0)
+# print(v_1)
+
+
+
+
+
+
+# pos = [v_0[0], v_0[1], v_0[2], -3.14, 0, 0]
+
+
+# pos[:3] = v_1[:3]
 # rob.movel((pos[0],pos[1], pos[2], pos[3], pos[4], pos[5]),v, a)
 
 
-pos = [v_0[0], v_0[1], v_0[2], -3.14, 0, 0]
-rob.movel((pos[0],pos[1], pos[2], pos[3], pos[4], pos[5]),v, a)
+building_seq = [[0.0,0.2,0.1],
+                [0.1,0.2,0.1],
+                [0.0,0.1,0.1],
+                [0.1,0.1,0.1],
+                [0.0,0.0,0.1],
+                [0.1,0.0,0.1],
+                [0.0,0.2,0.2]]
 
 
-pos[:3] = v_1[:3]
-rob.movel((pos[0],pos[1], pos[2], pos[3], pos[4], pos[5]),v, a)
+print("Placing begun")
+
+for point in building_seq:
+    print("Placing in point %s" %point)
+    v_temp = H.dot([point[0], point[1], point[2], 1])
+    pos[:3] = v_temp[:3]
+    travel_heigt = max(pos_of_box[2], pos[2]) + 0.3
+
+    # move to box
+    rob.movel((pos_of_box[0], pos_of_box[1], pos_of_box[2],
+               pos_of_box[3], pos_of_box[4], pos_of_box[5]), v, a)
+
+    # pick up box
+
+
+    # go up from box
+    rob.movel((pos_of_box[0], pos_of_box[1], travel_heigt,
+               pos_of_box[3], pos_of_box[4], pos_of_box[5]), v, a)
+
+    # move to position in the same height as went up from box
+    rob.movel((pos[0], pos[1], travel_heigt, pos[3], pos[4], pos[5]), v, a)
+
+    # move to box position
+    rob.movel((pos[0], pos[1], pos[2], pos[3], pos[4], pos[5]), v, a)
+
+
+#   place box
+
+    print("Placed in point %s" % point)
+    time.sleep(3)
+
+    # move to box upper position
+    rob.movel((pos[0], pos[1], travel_heigt, pos[3], pos[4], pos[5]), v, a)
+
+    # move to box
+    rob.movel((pos_of_box[0], pos_of_box[1], travel_heigt,
+               pos_of_box[3], pos_of_box[4], pos_of_box[5]), v, a)
+
+    print("Finished with point %s" % point)
+
+print("Placing fished")

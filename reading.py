@@ -28,11 +28,14 @@ def plot_vectors(vectors):
     axes.add_collection3d(mplot3d.art3d.Poly3DCollection(vectors))
 
     # Auto scale to the mesh size
-    scale = np.concatenate([v[0] for v in vectors]).flatten(-1)
-    axes.auto_scale_xyz(scale, scale, scale)
+    try:
+        scale = np.concatenate([v[0] for v in vectors]).flatten(-1)
+        axes.auto_scale_xyz(scale, scale, scale)
 
-    # Show the plot to the screen
-    pyplot.show()
+        # Show the plot to the screen
+        pyplot.show()
+    except ValueError:
+        pass
 
 
 def plot_points(points, box_size = 1):
@@ -216,7 +219,8 @@ def make_slice(mesh, box_size, fraction=3):
 
     length = math.ceil(abs(x_max - x_min) / box_size)
     width = math.ceil(abs(y_max - y_min) / box_size)
-    z_size = int(round(z_max / box_size))
+    z_size = int(math.ceil(z_max / box_size))
+
     sliced_image = np.zeros((length, width, z_size))
 
     for i in range(z_size):

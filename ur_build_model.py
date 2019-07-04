@@ -2,6 +2,8 @@ import urx
 import numpy as np
 from elementary_transformations import getMatrix
 import time
+import json
+
 
 rob = urx.Robot("160.69.69.23")
 
@@ -18,10 +20,15 @@ p2 = np.array([1.0155085086282054, -0.660885834542829, 0.08676025571748103])
 p3 = np.array([0.4979209452684969, -0.6809521734628257, 0.08680421672618033])
 H = getMatrix(p1, p2, p3)
 
+building_seq = []
+with open("building_seq.txt", "r") as inputfile:
+    building_seq = [ json.loads(i.rstrip("\n"))  for i in inputfile.readlines()]
+    print(building_seq)
 
 
-v = 0.8
-a = 0.4
+
+v = 0.6
+a = 0.2
 point_of_box = H.dot([1, 0, 0.1, 1])
 pos_of_box = [point_of_box[0], point_of_box[1], point_of_box[2], -3.14, 0, 0]
 
@@ -32,58 +39,11 @@ rob.movel((pos[0], pos[1], pos[2] + 0.2, pos[3], pos[4], pos[5]),v, a)
 
 
 
-rob.stop()
-rob.close()
-exit(0)
-
-
-# pos = [v_0[0], v_0[1], v_0[2], -3.14, 0, 0]
-
-
-# pos[:3] = v_1[:3]
-# rob.movel((pos[0],pos[1], pos[2], pos[3], pos[4], pos[5]),v, a)
-
-
-# building_seq = [[0.0,0.2,0.1],
-#                 [0.1,0.2,0.1],
-#                 [0.0,0.1,0.1],
-#                 [0.1,0.1,0.1],
-#                 [0.0,0.0,0.1],
-#                 [0.1,0.0,0.1],
-#                 [0.0,0.2,0.2]]
-#
-
-
-building_seq = [[0.0,0.2,0.1],
-                [0.1,0.2,0.1],
-                [0.2,0.2,0.1],
-                [0.3,0.2,0.1],
-                [0.4,0.2,0.1],
-                [0.0,0.1,0.1],
-                [0.3,0.1,0.1],
-                [0.4,0.1,0.1],
-                [0.0,0.0,0.1],
-                [0.1,0.0,0.1],
-                [0.2,0.0,0.1],
-                [0.3,0.0,0.1],
-                [0.4,0.0,0.1],
-                [0.3,0.2,0.2],
-                [0.4,0.2,0.2],
-                [0.3,0.1,0.2],
-                [0.4,0.1,0.2],
-                [0.4,0.0,0.2],
-                [0.3,0.2,0.3],
-                [0.4,0.2,0.3],
-                [0.3,0.1,0.3],
-                [0.4,0.1,0.3]]
-
-
-
-
 offset = [0.3, 0.15]
 print("Placing begun")
 
-for point in building_seq:
+for seq in building_seq:
+    point = [seq.get('x'), seq.get('y'), seq.get('z')]
     print("Placing in point %s" %point)
     v_temp = H.dot([point[0]+offset[0], point[1]+offset[1], point[2], 1])
     pos[:3] = v_temp[:3]

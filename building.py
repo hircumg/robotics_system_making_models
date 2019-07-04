@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from reading import make_slice
-
+import  json
 
 def get_max_side(sliced_mesh):
     best_substrate = [sliced_mesh[0, :, :].sum(),
@@ -83,14 +83,14 @@ def get_building_sequence(sliced_mesh, box_size):
         for j in reversed(range(mesh_size[1])):
             for i in range(mesh_size[0]):
                 if(sliced_mesh[i,j,k] == 1):
-                    glue = {'up': (j + 1 < mesh_size[1]) and (sliced_mesh[i, j + 1, k] > 0),
-                            'left': (i - 1 >= 0) and (sliced_mesh[i - 1, j, k] > 0),
-                            'down': False,
-                            'right': False,
-                            'top': False,
-                            'bottom': k > 0}
+                    glue = {'up': int((j + 1 < mesh_size[1]) and (sliced_mesh[i, j + 1, k] > 0)),
+                            'left': int((i - 1 >= 0) and (sliced_mesh[i - 1, j, k] > 0)),
+                            'down': int(False),
+                            'right': int(False),
+                            'top': int(False),
+                            'bottom': int(k > 0)}
                     if k == 0 or sliced_mesh[i, j, k - 1] == 2:
-                        sequence.append({'x': i * box_size, 'y': j * box_size, 'z': k * box_size, 'glue': glue})
+                        sequence.append({'x': i * box_size/1000, 'y': j * box_size/1000, 'z': (k+1) * box_size/1000, 'glue': glue})
                         sliced_mesh[i, j, k] = 2
                     else:
                         in_queue.append([i,j])
@@ -105,15 +105,15 @@ def get_building_sequence(sliced_mesh, box_size):
                         int(sliced_mesh[item[0], item[1] - 1, k] == 2) * int(item[1] - 1 >= 0) +
                         int(sliced_mesh[item[0], (item[1] + 1) % mesh_size[1], k] == 2) * int(item[1] + 1 < mesh_size[1]))
                 if(step > 0):
-                    glue = {'up': (j + 1 < mesh_size[1]) and (sliced_mesh[i, j + 1, k] > 0),
-                            'left': (i - 1 >= 0) and (sliced_mesh[i - 1, j, k] > 0),
-                            'down': (j - 1 >= 0) and (sliced_mesh[i, j - 1, k] > 0) ,
-                            'right': (i + 1 < mesh_size[0]) and (sliced_mesh[i + 1, j, k] > 0),
-                            'top': False,
-                            'bottom': False}
+                    glue = {'up': int((j + 1 < mesh_size[1]) and (sliced_mesh[i, j + 1, k] > 0)),
+                            'left': int((i - 1 >= 0) and (sliced_mesh[i - 1, j, k] > 0)),
+                            'down': int((j - 1 >= 0) and (sliced_mesh[i, j - 1, k] > 0)) ,
+                            'right': int((i + 1 < mesh_size[0]) and (sliced_mesh[i + 1, j, k] > 0)),
+                            'top': int(False),
+                            'bottom': int(False)}
                     sliced_mesh[item[0], item[1], k] = 2
                     # sequence.append([item[0]*box_size, item[1]*box_size, k * box_size])
-                    sequence.append({'x': item[0]*box_size, 'y': item[1]*box_size, 'z': k * box_size, 'glue': glue})
+                    sequence.append({'x': item[0]*box_size/1000, 'y': item[1]*box_size/1000, 'z': (k+1) * box_size/1000, 'glue': glue})
                     in_queue.pop(i)
                 else:
                     i += 1
@@ -142,6 +142,10 @@ def plot_mesh(mesh):
     pyplot.show()
 
 
+
+
+
+
 if __name__ == '__main__':
     box  = 100
     # Load the STL files
@@ -165,7 +169,13 @@ if __name__ == '__main__':
     len_of_slice = len(my_sliced_mesh[my_sliced_mesh >= 1])
     sliced_sequence = get_building_sequence(my_sliced_mesh, box)
 
+    outputfile = open("building_seq.txt","w")
+
+
     for seq in sliced_sequence:
         # print(seq)
-        print("[" + str(seq.get('x')/1000) + "," + str(seq.get('y')/1000) + "," + str((seq.get('z') + box)/1000) + "],")
+        print("[" + str(seq.get('x')) + "," + str(seq.get('y')) + "," + str((seq.get('z'))) + "],")
 
+
+        outputfile.write(json.dumps(seq) + "\n")
+    outputfile.close()

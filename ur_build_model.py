@@ -43,11 +43,20 @@ offset = [0.3, 0.15]
 print("Placing begun")
 
 for seq in building_seq:
+
     point = [seq.get('x'), seq.get('y'), seq.get('z')]
-    print("Placing in point %s" %point)
+
+
+    glue = seq.get("glue")
+    dx = 0.05 * (-glue.get('up') + glue.get('down'))
+    dy = 0.05 * (-glue.get('left') + glue.get('right'))
+    dz = 0.05 * glue.get('bottom')
+
+    print("Placing in point %s and dx: %f, dy: %f, dz: %f" % (point,dx, dy,dz))
+
     v_temp = H.dot([point[0]+offset[0], point[1]+offset[1], point[2], 1])
     pos[:3] = v_temp[:3]
-    travel_heigt = max(pos_of_box[2], pos[2]) + 0.3
+    travel_height = max(pos_of_box[2], pos[2]) + 0.3
 
     # move to box
     rob.movel((pos_of_box[0], pos_of_box[1], pos_of_box[2],
@@ -57,11 +66,19 @@ for seq in building_seq:
 
 
     # go up from box
-    rob.movel((pos_of_box[0], pos_of_box[1], travel_heigt,
+    rob.movel((pos_of_box[0], pos_of_box[1], travel_height,
                pos_of_box[3], pos_of_box[4], pos_of_box[5]), v, a)
 
-    # move to position in the same height as went up from box
-    rob.movel((pos[0], pos[1], travel_heigt, pos[3], pos[4], pos[5]), v, a)
+
+
+
+    # move to position in the same height as went up from box with shifting
+    rob.movel((pos[0]+dx, pos[1]+dy, travel_height, pos[3], pos[4], pos[5]), v, a)
+
+
+    # move to box position with shifting
+    rob.movel((pos[0]+dx, pos[1]+dy, pos[2]+dz, pos[3], pos[4], pos[5]), v, a)
+
 
     # move to box position
     rob.movel((pos[0], pos[1], pos[2], pos[3], pos[4], pos[5]), v, a)
@@ -70,13 +87,13 @@ for seq in building_seq:
 #   place box
 
     print("Placed in point %s" % point)
-    time.sleep(1.5)
+    time.sleep(1)
 
     # move to box upper position
-    rob.movel((pos[0], pos[1], travel_heigt, pos[3], pos[4], pos[5]), v, a)
+    rob.movel((pos[0], pos[1], travel_height, pos[3], pos[4], pos[5]), v, a)
 
     # move to box
-    rob.movel((pos_of_box[0], pos_of_box[1], travel_heigt,
+    rob.movel((pos_of_box[0], pos_of_box[1], travel_height,
                pos_of_box[3], pos_of_box[4], pos_of_box[5]), v, a)
 
     print("Finished with point %s" % point)

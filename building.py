@@ -88,7 +88,7 @@ def get_building_sequence(sliced_mesh, box_size):
                             'down': int(False),
                             'right': int(False),
                             'top': int(False),
-                            'bottom': int(k > 0)}
+                            'bottom': int(True)}
                     if k == 0 or sliced_mesh[i, j, k - 1] == 2:
                         sequence.append({'x': i * box_size/1000, 'y': j * box_size/1000, 'z': (k+1) * box_size/1000, 'glue': glue})
                         sliced_mesh[i, j, k] = 2

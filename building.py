@@ -83,14 +83,14 @@ def get_building_sequence(sliced_mesh, box_size):
         for j in reversed(range(mesh_size[1])):
             for i in range(mesh_size[0]):
                 if(sliced_mesh[i,j,k] == 1):
-                    glue = {'up': int((j + 1 < mesh_size[1]) and (sliced_mesh[i, j + 1, k] > 0)),
+                    glue = {'up': int((j + 1 < mesh_size[1]) and ((sliced_mesh[i, j + 1, k] > 0) or ((i + 1 < mesh_size[0]) and (sliced_mesh[i+1, j + 1, k] > 0)))),
                             'left': int((i - 1 >= 0) and (sliced_mesh[i - 1, j, k] > 0)),
                             'down': int(False),
                             'right': int(False),
                             'top': int(False),
                             'bottom': int(True)}
                     if k == 0 or sliced_mesh[i, j, k - 1] == 2:
-                        sequence.append({'x': i * box_size/1000, 'y': j * box_size/1000, 'z': (k+1) * box_size/1000, 'glue': glue})
+                        sequence.append({'x': i * box_size/1000, 'y': j * box_size/1000, 'z': (k) * box_size/1000, 'glue': glue})
                         sliced_mesh[i, j, k] = 2
                     else:
                         in_queue.append([i,j])
@@ -113,7 +113,7 @@ def get_building_sequence(sliced_mesh, box_size):
                             'bottom': int(False)}
                     sliced_mesh[item[0], item[1], k] = 2
                     # sequence.append([item[0]*box_size, item[1]*box_size, k * box_size])
-                    sequence.append({'x': item[0]*box_size/1000, 'y': item[1]*box_size/1000, 'z': (k+1) * box_size/1000, 'glue': glue})
+                    sequence.append({'x': item[0]*box_size/1000, 'y': item[1]*box_size/1000, 'z': (k) * box_size/1000, 'glue': glue})
                     in_queue.pop(i)
                 else:
                     i += 1

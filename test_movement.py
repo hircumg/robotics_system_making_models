@@ -59,13 +59,26 @@ H = translation.dot(rotation)
 v = 0.8
 a = 0.4
 point_of_box = H.dot([1, 0, 0.1, 1])
-pos_of_box = [point_of_box[0], point_of_box[1], point_of_box[2], -3.14, 0, 0]
+# pos_of_box = [point_of_box[0], point_of_box[1], point_of_box[2], -3.14, 0, 0]
+pos_of_box = [point_of_box[0], point_of_box[1], point_of_box[2], -1.57, 0, 0]
+# pos_of_box = [point_of_box[0], point_of_box[1], point_of_box[2], -3.14, 0, -1.57]
+
+pos = pos_of_box.copy()
+rob.movel((pos[0], pos[1], pos[2] + 0.2, pos[3], pos[4], pos[5]),v, a)
+
+
+pos_of_box = [point_of_box[0], point_of_box[1], point_of_box[2], 0, -1.57, 0]
+# pos_of_box = [point_of_box[0], point_of_box[1], point_of_box[2], 0, -3.14, 0]
 
 pos = pos_of_box.copy()
 rob.movel((pos[0], pos[1], pos[2] + 0.2, pos[3], pos[4], pos[5]),v, a)
 
 
 
+print("Placing fished")
+rob.stop()
+rob.close()
+exit(0)
 
 # v_0 = H.dot([0, 0, 0.1, 1])
 # pos[:3] = v
@@ -172,6 +185,4 @@ for point in building_seq:
 
     print("Finished with point %s" % point)
 
-print("Placing fished")
-rob.stop()
-rob.close()
+

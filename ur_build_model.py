@@ -22,7 +22,7 @@ def close_gripper():
     # print("Closed")
 
 
-def pick_box(travel_height):
+def pick_box_from_plane(travel_height):
     a_picking = 0.2
     t_point = H_building.dot([0.0, 0.0, 0.2, 1])
     pos = [t_point[0], t_point[1], t_point[2], -2.91, 1.18, 0]
@@ -40,13 +40,10 @@ def pick_box(travel_height):
 
     close_gripper()
 
-    t_point = H_building.dot([0.11, 0.1, 0.215, 1])
-    pos = [t_point[0], t_point[1], t_point[2], -2.28, 0.61, -0.55]
-    rob.movel((pos[0], pos[1], max(travel_height, pos[2]), pos[3], pos[4], pos[5]), v, a)
-
+    t_point = H_building.dot([-0.1, -0.1, 0.215, 1])
     # t_point = H_building.dot([0.0, 0.0, 0.2, 1])
-    # pos = [t_point[0], t_point[1], t_point[2], -2.91, 1.18, 0]
-    # rob.movel((pos[0], pos[1], max(travel_height, pos[2]), pos[3], pos[4], pos[5]), v, a)
+    pos = [t_point[0], t_point[1], t_point[2], -2.91, 1.18, 0]
+    rob.movel((pos[0], pos[1], max(travel_height, pos[2]), pos[3], pos[4], pos[5]), v, a)
 
 
 
@@ -133,7 +130,7 @@ for seq in building_seq:
     travel_height = max(pos_of_box[2], pos[2]) + 0.3
 
 
-    pick_box(travel_height)
+    pick_box_from_plane(travel_height)
 
 
 
@@ -163,7 +160,7 @@ for seq in building_seq:
 
 
     print("Placed in point %s" % point)
-    # time.sleep(1)
+
 
     # move to box upper position
     rob.movel((pos[0], pos[1], travel_height, pos[3], pos[4], pos[5]), v, a)

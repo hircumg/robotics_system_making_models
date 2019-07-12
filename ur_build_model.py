@@ -50,7 +50,18 @@ def pick_box_from_plane(travel_height):
 rob = urx.Robot("160.69.69.23")
 
 pos = rob.getl()
-# print(pos)
+print(pos)
+
+print("Placing finished")
+rob.stop()
+rob.close()
+exit(0)
+
+
+p1_kinect = np.array([0.6595182776979692, 0.5527077233673513, 0.30390982324810517])
+p2_kinect = np.array([1.0511094767932876, -0.14565530619254743, 0.3203002823459069])
+p3_kinect = np.array([0.6604001054375369, -0.14564072513303492, 0.3203002823459069])
+H_kinect = getMatrix(p1_kinect, p2_kinect, p3_kinect)
 
 
 p1 = np.array([0.5403379359301442, -0.42697253272448493, 0.3052654374175694])

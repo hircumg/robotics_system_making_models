@@ -8,6 +8,11 @@ rob = urx.Robot("160.69.69.23")
 pos = rob.getl()
 print(pos)
 
+
+rob.stop()
+rob.close()
+exit(0)
+
 # pos[3:] = [-1.57, 0, 0] # forward
 # pos[3:] = [-3.14, 0, 0] # down
 

@@ -50,6 +50,9 @@ def plot_points3d(points3d, box_size):
     y = []
     z = []
 
+
+
+
     if len(points3d.shape) == 3:
         for i in range(points3d.shape[0]):
             for j in range(points3d.shape[1]):
@@ -66,6 +69,8 @@ def plot_points3d(points3d, box_size):
                     y.append(j*box_size)
                     z.append(0)
     ax.scatter3D(x, y, z, c='b', marker='o')
+
+    # ax.annotate("A", (x[0], y[0], z[0]))
 
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
@@ -152,7 +157,8 @@ if __name__ == '__main__':
     # your_mesh = mesh.Mesh.from_file('Models/PLA_190to220_stl_file.stl')
     # your_mesh = mesh.Mesh.from_file('Models/Minecraft_Hanger_hand_1.stl')
     # your_mesh = mesh.Mesh.from_file('Models/inclined_plane.stl')
-    your_mesh = mesh.Mesh.from_file('Models/demo_1.stl')
+    # your_mesh = mesh.Mesh.from_file('Models/demo_1.stl')
+    your_mesh = mesh.Mesh.from_file('Models/Demo_3.stl')
     # your_mesh = mesh.Mesh.from_file('Models/for_test_1.stl')
     # your_mesh = mesh.Mesh.from_file('Models/for_test_2.stl')
     # your_mesh = mesh.Mesh.from_file('Models/Groot_v1_1M_Merged.stl')

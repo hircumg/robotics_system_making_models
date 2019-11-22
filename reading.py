@@ -1,57 +1,7 @@
-from stl import mesh
 import numpy as np
 import math
-import matplotlib.pyplot as plt
 import time
-
-
-def plot_lines(lines):
-    """
-    Plotting border of slice
-    :param lines: array of lines for plotting
-    :return: nothing
-    """
-    for line in lines:
-        plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='o', markerfacecolor='red', markersize=5,
-                 color='skyblue', linewidth=4)
-
-    plt.show()
-
-def plot_vectors(vectors):
-    from matplotlib import pyplot
-    from mpl_toolkits import mplot3d
-    # Create a new plot
-    figure = pyplot.figure()
-    axes = mplot3d.Axes3D(figure)
-
-
-    axes.add_collection3d(mplot3d.art3d.Poly3DCollection(vectors))
-
-    # Auto scale to the mesh size
-    try:
-        scale = np.concatenate([v[0] for v in vectors]).flatten(-1)
-        axes.auto_scale_xyz(scale, scale, scale)
-
-        # Show the plot to the screen
-        pyplot.show()
-    except ValueError:
-        pass
-
-
-def plot_points(points, box_size = 1):
-    """
-    Plotting array where indexes is coordinates of plotting points.
-    Point will be plotted only if element value is 1
-    :param points: two-dimensional binary array
-    :return: nothing
-    """
-    for i in range(points.shape[0]):
-        for j in range(points.shape[1]):
-            if points[i, j] % 2 == 1:
-                plt.plot(i * box_size, j * box_size, 'bo')
-    plt.show()
-
-
+from plotting import plot_lines, plot_points, plot_vectors
 
 
 def is_inside(point, polygon):

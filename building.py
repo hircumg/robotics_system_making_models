@@ -1,9 +1,8 @@
 from stl import mesh
 import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+from plotting import plot_points3d, plot_mesh, set_ploting_required
 from reading import make_slice
-import  json
+import json
 
 def get_max_side(sliced_mesh):
     best_substrate = [sliced_mesh[0, :, :].sum(),
@@ -37,46 +36,6 @@ def provide_best_substrate(sliced_mesh):
 
     return new_mesh, best_substrate_ind
 
-def plot_points3d(points3d, box_size):
-    """
-    Plotting array where indexes is coordinates of plotting points.
-    Point will be plotted only if element value is 1
-    :param points3d: two or three dimensional binary array
-    :return: nothing
-    """
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    x = []
-    y = []
-    z = []
-
-
-
-
-    if len(points3d.shape) == 3:
-        for i in range(points3d.shape[0]):
-            for j in range(points3d.shape[1]):
-                for k in range(points3d.shape[2]):
-                    if points3d[i, j, k] % 2 == 1:
-                        x.append(i*box_size)
-                        y.append(j*box_size)
-                        z.append(k*box_size)
-    elif len(points3d.shape) == 2:
-        for i in range(points3d.shape[0]):
-            for j in range(points3d.shape[1]):
-                if points3d[i, j] % 2 == 1:
-                    x.append(i*box_size)
-                    y.append(j*box_size)
-                    z.append(0)
-    ax.scatter3D(x, y, z, c='b', marker='o')
-
-    # ax.annotate("A", (x[0], y[0], z[0]))
-
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-
-    plt.show()
 
 
 
@@ -129,59 +88,38 @@ def get_building_sequence(sliced_mesh, box_size):
 
     return sequence
 
-def plot_mesh(mesh):
-    from matplotlib import pyplot
-    from mpl_toolkits import mplot3d
-    # Create a new plot
-    figure = pyplot.figure()
-    axes = mplot3d.Axes3D(figure)
 
+def generate_building_sequence(box_size, stl_model, output_file, plotting=True):
+    set_ploting_required(plotting)
+    print("started")
 
-    axes.add_collection3d(mplot3d.art3d.Poly3DCollection(mesh.vectors))
+    # Load the STL files
+    your_mesh = mesh.Mesh.from_file(stl_model)
+    plot_mesh(your_mesh)
 
-    # Auto scale to the mesh size
-    scale = mesh.points.flatten(-1)
-    axes.auto_scale_xyz(scale, scale, scale)
+    my_sliced_mesh = make_slice(your_mesh, box_size)
+    plot_points3d(my_sliced_mesh, box_size)
 
-    # Show the plot to the screen
-    pyplot.show()
+    my_sliced_mesh, orient = provide_best_substrate(my_sliced_mesh)
+    plot_points3d(my_sliced_mesh,box_size)
 
+    len_of_slice = len(my_sliced_mesh[my_sliced_mesh >= 1])
+    sliced_sequence = get_building_sequence(my_sliced_mesh, box_size)
 
-
-
+    if output_file is not None:
+        outputfile = open(output_file,"w")
+    for seq in sliced_sequence:
+        print(seq)
+        if output_file is not None:
+            outputfile.write(json.dumps(seq) + "\n")
+    print("Finished")
+    if output_file is not None:
+        outputfile.close()
+    return seq
 
 
 if __name__ == '__main__':
-    box  = 100
-    # Load the STL files
-    # your_mesh = mesh.Mesh.from_file('Models/PLA_190to220_stl_file.stl')
-    # your_mesh = mesh.Mesh.from_file('Models/Minecraft_Hanger_hand_1.stl')
-    # your_mesh = mesh.Mesh.from_file('Models/inclined_plane.stl')
-    # your_mesh = mesh.Mesh.from_file('Models/demo_1.stl')
-    your_mesh = mesh.Mesh.from_file('Models/Demo_3.stl')
-    # your_mesh = mesh.Mesh.from_file('Models/for_test_1.stl')
-    # your_mesh = mesh.Mesh.from_file('Models/for_test_2.stl')
-    # your_mesh = mesh.Mesh.from_file('Models/Groot_v1_1M_Merged.stl')
-    # your_mesh = mesh.Mesh.from_file('Models/xyzCalibration_cube.stl')
-
-    plot_mesh(your_mesh)
-    my_sliced_mesh = make_slice(your_mesh, box)
-
-    plot_points3d(my_sliced_mesh, box)
-    my_sliced_mesh, orient = provide_best_substrate(my_sliced_mesh)
-
-    plot_points3d(my_sliced_mesh,box)
-
-    len_of_slice = len(my_sliced_mesh[my_sliced_mesh >= 1])
-    sliced_sequence = get_building_sequence(my_sliced_mesh, box)
-
-    outputfile = open("building_seq.txt","w")
+    generate_building_sequence(100, 'Models/Demo_3.stl', "building_seq.txt", plotting=True)
 
 
-    for seq in sliced_sequence:
-        # print(seq)
-        print("[" + str(seq.get('x')) + "," + str(seq.get('y')) + "," + str((seq.get('z'))) + "],")
 
-
-        outputfile.write(json.dumps(seq) + "\n")
-    outputfile.close()

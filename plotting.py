@@ -20,7 +20,7 @@ def plot_mesh(mesh):
     axes.add_collection3d(mplot3d.art3d.Poly3DCollection(mesh.vectors))
 
     # Auto scale to the mesh size
-    scale = mesh.points.flatten(-1)
+    scale = mesh.points.flatten('C')
     axes.auto_scale_xyz(scale, scale, scale)
     # Show the plot to the screen
     print("plotted mesh")

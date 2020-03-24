@@ -5,6 +5,7 @@
       <module fileurl="file://$USER_HOME$/catkin_ws/src/box_determination/.idea/box_determination.iml" filepath="$USER_HOME$/catkin_ws/src/box_determination/.idea/box_determination.iml" />
       <module fileurl="file://$PROJECT_DIR$/../ONTI2019-20/irs-short-assignments/.idea/irs-short-assignments.iml" filepath="$PROJECT_DIR$/../ONTI2019-20/irs-short-assignments/.idea/irs-short-assignments.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/robotics_system_making_models.iml" filepath="$PROJECT_DIR$/.idea/robotics_system_making_models.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../onti201920/slam_full_task/.idea/slam_full_task.iml" filepath="$PROJECT_DIR$/../onti201920/slam_full_task/.idea/slam_full_task.iml" />
     </modules>
   </component>
 </project>

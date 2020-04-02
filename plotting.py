@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import pyplot
-from mpl_toolkits import mplot3d
+# from matplotlib import pyplot
+# from mpl_toolkits import mplot3d
 
 ploting_required = True
 
@@ -20,7 +20,7 @@ def plot_mesh(mesh):
     axes.add_collection3d(mplot3d.art3d.Poly3DCollection(mesh.vectors))
 
     # Auto scale to the mesh size
-    scale = mesh.points.flatten(-1)
+    scale = mesh.points.flatten('C')
     axes.auto_scale_xyz(scale, scale, scale)
     # Show the plot to the screen
     print("plotted mesh")
@@ -81,9 +81,8 @@ def plot_lines(lines):
     :return: nothing
     """
     for line in lines:
-        plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='o', markerfacecolor='red',
-                 markersize=5,
-                 color='skyblue', linewidth=4)
+        plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='o', markerfacecolor='red', markersize=5, color='skyblue', linewidth=4)
+     # plt.plot(all_lines, marker='o', markerfacecolor='red', markersize=5, color='skyblue', linewidth=4)
 
     plt.show()
 
@@ -107,8 +106,8 @@ def plot_vectors(vectors):
         pass
 
 def plot_points(points, box_size=1):
-    if not ploting_required:
-        return 0
+    # if not ploting_required:
+    #     return 0
     """
     Plotting array where indexes is coordinates of plotting points.
     Point will be plotted only if element value is 1

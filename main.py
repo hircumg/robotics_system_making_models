@@ -1,7 +1,6 @@
 from stl import mesh
 import numpy as np
 from plotting import *
-from reading import make_slice
 import json
 import math
 

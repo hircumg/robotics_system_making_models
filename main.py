@@ -77,7 +77,7 @@ def get_milling_sequence(sliced_image, drilling_radius, drilling_height):
                 if sliced_image[k, j, i] == 1:
                     if not is_milling:
                         t_point = 'p' + str(point_iter)
-                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point_old, t_point]})
+                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                         t_point_old = t_point
 
                         t_point = 'p' + str(point_iter + 1)
@@ -85,34 +85,34 @@ def get_milling_sequence(sliced_image, drilling_radius, drilling_height):
                             {t_point_old: (drilling_radius * k, drilling_radius * j, drilling_height * (i + 1))})
                         points.update({t_point: (drilling_radius * k, drilling_radius * j, drilling_height * i)})
                         is_milling = True
-                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point_old, t_point]})
+                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                         t_point_old = t_point
                         point_iter += 2
 
                 else:
                     if is_milling:
                         t_point = 'p' + str(point_iter)
-                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point_old, t_point]})
+                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                         t_point_old = t_point
 
                         t_point = 'p' + str(point_iter + 1)
                         points.update({t_point_old: (drilling_radius * k, drilling_radius * j, drilling_height * i)})
                         points.update({t_point: (drilling_radius * k, drilling_radius * j, drilling_height * (i + 1))})
                         is_milling = False
-                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point_old, t_point]})
+                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                         t_point_old = t_point
                         point_iter += 2
 
             if is_milling:
                 t_point = 'p' + str(point_iter)
-                trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point_old, t_point]})
+                trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                 t_point_old = t_point
 
                 t_point = 'p' + str(point_iter + 1)
                 points.update({t_point_old: (drilling_radius * k, drilling_radius * j, drilling_height * i)})
                 points.update({t_point: (drilling_radius * k, drilling_radius * j, drilling_height * (i + 1))})
                 is_milling = False
-                trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point_old, t_point]})
+                trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                 t_point_old = t_point
                 point_iter += 2
 

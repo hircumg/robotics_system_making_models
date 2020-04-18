@@ -5,6 +5,8 @@ import numpy as np
 # !! import json
 import math
 
+from meshdiff import * 
+
 # !! set constant
 MILING = 'miling'
 
@@ -171,8 +173,10 @@ class Slicer():
         return x_min, x_max, y_min, y_max, z_min, z_max
 
     def _substract_stls(self, initial_model, final_model):
-        # todo initial_model - final_model
-        stl_model = initial_model
+        diff = MeshDiff()
+        diff.loadStl(initial_model,external=True)
+        diff.loadStl(final_model,external=False)
+        stl_model = diff.eval()  # generate difference
         return stl_model
 
     def _slice_per_layer(self, mesh, params, layer):

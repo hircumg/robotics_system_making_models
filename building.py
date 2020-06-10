@@ -54,12 +54,12 @@ def get_building_sequence(sliced_mesh, box_size):
                             'top': int(False),
                             'bottom': int(True)}
                     if k == 0 or sliced_mesh[i, j, k - 1] == 2:
-                        sequence.append({'x': i * box_size/1000, 'y': j * box_size/1000, 'z': (k) * box_size/1000, 'glue': glue})
+                        sequence.append({'x': i * box_size, 'y': j * box_size, 'z': (k) * box_size, 'glue': glue})
                         sliced_mesh[i, j, k] = 2
                     else:
                         in_queue.append([i,j])
 
-        print("Initially left number of external elements %i for %i" % (len(in_queue), k))
+        # print("Initially left number of external elements %i for %i" % (len(in_queue), k))
         for j in range(len(in_queue)):
             i = 0
             while i < len(in_queue):
@@ -77,31 +77,39 @@ def get_building_sequence(sliced_mesh, box_size):
                             'bottom': int(False)}
                     sliced_mesh[item[0], item[1], k] = 2
                     # sequence.append([item[0]*box_size, item[1]*box_size, k * box_size])
-                    sequence.append({'x': item[0]*box_size/1000, 'y': item[1]*box_size/1000, 'z': (k) * box_size/1000, 'glue': glue})
+                    sequence.append({'x': item[0]*box_size, 'y': item[1]*box_size, 'z': (k) * box_size, 'glue': glue})
                     in_queue.pop(i)
                 else:
                     i += 1
             if(len(in_queue) == 0):
                 break
 
-        print("Left number of external elements %i for %i" %(len(in_queue), k))
+        # print("Left number of external elements %i for %i" %(len(in_queue), k))
 
     return sequence
 
 
-def generate_building_sequence(box_size, stl_model, output_file, plotting=True):
+def generate_building_sequence(box_size, stl_model, output_file,plot_name=None, plotting=True):
     set_ploting_required(plotting)
-    print("started")
+    logs = open('logs.txt', 'a+')
+    logs.write(f"Started for {stl_model} with bot size: {box_size}\n")
+    print(f"Started for {stl_model} with bot size: {box_size}")
 
     # Load the STL files
     your_mesh = mesh.Mesh.from_file(stl_model)
     plot_mesh(your_mesh)
 
-    my_sliced_mesh = make_slice(your_mesh, box_size)
-    plot_points3d(my_sliced_mesh, box_size)
-
-    my_sliced_mesh, orient = provide_best_substrate(my_sliced_mesh)
-    plot_points3d(my_sliced_mesh,box_size)
+    my_sliced_mesh, dt = make_slice(your_mesh, box_size)
+    plot_points3d(my_sliced_mesh, box_size,filename=plot_name)
+    vol = my_sliced_mesh.sum()*box_size**3
+    print('Slicing finished with time %i ns' % dt)
+    print(f"Approximated model volume {vol} mm^3")
+    logs.write('Slicing finished with time %i ns \n' % dt)
+    logs.write(f"Approximated model volume {vol} mm^3 \n")
+    logs.write(f"{stl_model};{box_size};{dt};{vol}\n")
+    logs.close()
+    # my_sliced_mesh, orient = provide_best_substrate(my_sliced_mesh)
+    # plot_points3d(my_sliced_mesh,box_size)
 
     len_of_slice = len(my_sliced_mesh[my_sliced_mesh >= 1])
     sliced_sequence = get_building_sequence(my_sliced_mesh, box_size)
@@ -109,17 +117,26 @@ def generate_building_sequence(box_size, stl_model, output_file, plotting=True):
     if output_file is not None:
         outputfile = open(output_file,"w")
     for seq in sliced_sequence:
-        print(seq)
+        # print(seq)
         if output_file is not None:
             outputfile.write(json.dumps(seq) + "\n")
-    print("Finished")
+    # print("Finished")
     if output_file is not None:
         outputfile.close()
     return seq
 
 
+
 if __name__ == '__main__':
-    generate_building_sequence(100, 'Models/Demo_3.stl', "building_seq.txt", plotting=True)
+    working_dir = 'models_test/'
+    files = ['box', 'hemisphere', 'pyramid', 'model1', 'model2']
+    box_sizes = range(5,105,5)
+    for file in files:
+        for box_size in box_sizes:
+            generate_building_sequence(box_size, f'{working_dir}{file}.stl',
+                                       f'{working_dir}sequences/{file}_{box_size}.txt',
+                                       plot_name=f'{working_dir}fig/{file}_{box_size}.png',
+                                       plotting=True)
 
 
 

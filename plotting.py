@@ -20,14 +20,14 @@ def plot_mesh(mesh):
     axes.add_collection3d(mplot3d.art3d.Poly3DCollection(mesh.vectors))
 
     # Auto scale to the mesh size
-    scale = mesh.points.flatten(-1)
+    scale = mesh.points.flatten('F')
     axes.auto_scale_xyz(scale, scale, scale)
     # Show the plot to the screen
-    print("plotted mesh")
+    # print("plotted mesh")
     pyplot.show()
 
 
-def plot_points3d(points3d, box_size):
+def plot_points3d(points3d, box_size, filename=None):
     if not ploting_required:
         return 0
     """
@@ -42,9 +42,6 @@ def plot_points3d(points3d, box_size):
     x = []
     y = []
     z = []
-
-
-
 
     if len(points3d.shape) == 3:
         for i in range(points3d.shape[0]):
@@ -68,8 +65,9 @@ def plot_points3d(points3d, box_size):
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    print("plotted 3d points")
-
+    # print("plotted 3d points")
+    if filename is not None:
+        plt.savefig(filename, format='png')
     plt.show()
 
 def plot_lines(lines):

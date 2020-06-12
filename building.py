@@ -91,8 +91,8 @@ def get_building_sequence(sliced_mesh, box_size):
 
 def generate_building_sequence(box_size, stl_model, output_file,plot_name=None, plotting=True):
     set_ploting_required(plotting)
-    logs = open('logs.txt', 'a+')
-    logs.write(f"Started for {stl_model} with bot size: {box_size}\n")
+    # logs = open('logs.txt', 'a+')
+    # logs.write(f"Started for {stl_model} with bot size: {box_size}\n")
     print(f"Started for {stl_model} with bot size: {box_size}")
 
     # Load the STL files
@@ -104,10 +104,8 @@ def generate_building_sequence(box_size, stl_model, output_file,plot_name=None, 
     vol = my_sliced_mesh.sum()*box_size**3
     print('Slicing finished with time %i ns' % dt)
     print(f"Approximated model volume {vol} mm^3")
-    logs.write('Slicing finished with time %i ns \n' % dt)
-    logs.write(f"Approximated model volume {vol} mm^3 \n")
-    logs.write(f"{stl_model};{box_size};{dt};{vol}\n")
-    logs.close()
+    # logs.write('Slicing finished with time %i ns \n' % dt)
+    # logs.write(f"Approximated model volume {vol} mm^3 \n")
     # my_sliced_mesh, orient = provide_best_substrate(my_sliced_mesh)
     # plot_points3d(my_sliced_mesh,box_size)
 
@@ -123,7 +121,7 @@ def generate_building_sequence(box_size, stl_model, output_file,plot_name=None, 
     # print("Finished")
     if output_file is not None:
         outputfile.close()
-    return seq
+    return seq, dt, vol
 
 
 
@@ -131,12 +129,22 @@ if __name__ == '__main__':
     working_dir = 'models_test/'
     files = ['box', 'hemisphere', 'pyramid', 'model1', 'model2']
     box_sizes = range(5,105,5)
+    # logs = open('logs.txt', 'a+')
+    # logs.write(f"{stl_model};{box_size};{dt};{vol}\n")
+    # logs.close()
+
     for file in files:
         for box_size in box_sizes:
-            generate_building_sequence(box_size, f'{working_dir}{file}.stl',
-                                       f'{working_dir}sequences/{file}_{box_size}.txt',
-                                       plot_name=f'{working_dir}fig/{file}_{box_size}.png',
-                                       plotting=True)
-
-
+            dt_times = []
+            vol = -1
+            for _ in range(100):
+                seq, dt, vol = generate_building_sequence(box_size, f'{working_dir}{file}.stl',
+                                           f'{working_dir}sequences/{file}_{box_size}.txt',
+                                           plot_name=f'{working_dir}fig/{file}_{box_size}.png',
+                                           plotting=False)
+                dt_times.append(dt)
+            mean_dt = np.array(dt_times).mean()
+            logs = open('logs.txt', 'a+')
+            logs.write(f"{file};{box_size};{dt_times};{mean_dt};{vol}\n")
+            logs.close()
 

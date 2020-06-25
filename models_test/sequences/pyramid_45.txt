@@ -1,0 +1,14 @@
+{"x": 0, "y": 90, "z": 0, "glue": {"up": 0, "left": 0, "down": 0, "right": 0, "top": 0, "bottom": 1}}
+{"x": 45, "y": 90, "z": 0, "glue": {"up": 0, "left": 1, "down": 0, "right": 0, "top": 0, "bottom": 1}}
+{"x": 90, "y": 90, "z": 0, "glue": {"up": 0, "left": 1, "down": 0, "right": 0, "top": 0, "bottom": 1}}
+{"x": 0, "y": 45, "z": 0, "glue": {"up": 1, "left": 0, "down": 0, "right": 0, "top": 0, "bottom": 1}}
+{"x": 45, "y": 45, "z": 0, "glue": {"up": 1, "left": 1, "down": 0, "right": 0, "top": 0, "bottom": 1}}
+{"x": 90, "y": 45, "z": 0, "glue": {"up": 1, "left": 1, "down": 0, "right": 0, "top": 0, "bottom": 1}}
+{"x": 0, "y": 0, "z": 0, "glue": {"up": 1, "left": 0, "down": 0, "right": 0, "top": 0, "bottom": 1}}
+{"x": 45, "y": 0, "z": 0, "glue": {"up": 1, "left": 1, "down": 0, "right": 0, "top": 0, "bottom": 1}}
+{"x": 90, "y": 0, "z": 0, "glue": {"up": 1, "left": 1, "down": 0, "right": 0, "top": 0, "bottom": 1}}
+{"x": 0, "y": 45, "z": 45, "glue": {"up": 0, "left": 0, "down": 0, "right": 0, "top": 0, "bottom": 1}}
+{"x": 45, "y": 45, "z": 45, "glue": {"up": 0, "left": 1, "down": 0, "right": 0, "top": 0, "bottom": 1}}
+{"x": 0, "y": 0, "z": 45, "glue": {"up": 1, "left": 0, "down": 0, "right": 0, "top": 0, "bottom": 1}}
+{"x": 45, "y": 0, "z": 45, "glue": {"up": 1, "left": 1, "down": 0, "right": 0, "top": 0, "bottom": 1}}
+{"x": 45, "y": 45, "z": 90, "glue": {"up": 0, "left": 0, "down": 0, "right": 0, "top": 0, "bottom": 1}}

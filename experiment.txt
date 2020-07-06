@@ -1,0 +1,24 @@
+before
+models_test/hemisphere.stl;25;13764216400;500000.0
+models_test/hemisphere.stl;25;13090705800;500000.0
+models_test/hemisphere.stl;25;12873982600;500000.0
+models_test/hemisphere.stl;25;13156345900;500000.0
+models_test/hemisphere.stl;25;13208418200;500000.0
+models_test/hemisphere.stl;25;13100809600;500000.0
+models_test/hemisphere.stl;25;12909429900;500000.0
+models_test/hemisphere.stl;25;13127532900;500000.0
+models_test/hemisphere.stl;25;17420794100;500000.0
+models_test/hemisphere.stl;25;14285714200;500000.0
+
+triangles removing
+models_test/hemisphere.stl;25;13325854600;500000.0
+models_test/hemisphere.stl;25;13428615700;500000.0
+models_test/hemisphere.stl;25;13539797600;500000.0
+models_test/hemisphere.stl;25;13413768100;500000.0
+models_test/hemisphere.stl;25;13201206800;500000.0
+models_test/hemisphere.stl;25;13275946100;500000.0
+models_test/hemisphere.stl;25;14216323300;500000.0
+models_test/hemisphere.stl;25;22705011200;500000.0
+models_test/hemisphere.stl;25;24319003600;500000.0
+models_test/hemisphere.stl;25;15575886500;500000.0
+

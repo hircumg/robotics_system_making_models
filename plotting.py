@@ -28,8 +28,8 @@ def plot_mesh(mesh):
 
 
 def plot_points3d(points3d, box_size, filename=None):
-    if not ploting_required:
-        return 0
+    # if not ploting_required:
+    #     return 0
     """
     Plotting array where indexes is coordinates of plotting points.
     Point will be plotted only if element value is 1
@@ -104,8 +104,8 @@ def plot_vectors(vectors):
         pass
 
 def plot_points(points, box_size=1):
-    # if not ploting_required:
-    #     return 0
+    if not ploting_required:
+        return 0
     """
     Plotting array where indexes is coordinates of plotting points.
     Point will be plotted only if element value is 1

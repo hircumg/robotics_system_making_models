@@ -1,7 +1,7 @@
 from stl import mesh
 import numpy as np
 # !! from plotting import *
-# !! from reading import make_slice
+from reading import make_slice
 # !! import json
 import math
 
@@ -287,9 +287,9 @@ class Slicer():
             print("Parmeters are not defined")
             return None
         if params.type == MILING:
-
+            initial_model_slice = make_slice(initial_model, params.diameter)
             stl_model = self._substract_stls(initial_model, final_model)
-            x_min, x_max, y_min, y_max, z_min, z_max = self._find_mins_maxs(stl_model)
+            x_min, x_max, y_min, y_max, z_min, z_max = self._find_mins_maxs(initial_model)
             # !! print("x_min %f, x_max %f, y_min %f, y_max %f, z_min %f, z_max %f" %(x_min, x_max, y_min, y_max, z_min, z_max))
 
             model_height = z_max - z_min
@@ -327,7 +327,7 @@ if __name__ == '__main__':
     params = Params(MILING)
     params.configureMilling(20, 5)
     # Load the STL files
-    commands = findTrajectory('Models/piramid_50.stl', 'Models/piramid_50.stl', params)
+    commands = findTrajectory('models_test/box.stl', 'models_test/pyramid.stl', params)
     print(commands['points'])
 
 # !!    # Load the STL files

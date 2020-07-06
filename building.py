@@ -119,7 +119,7 @@ def generate_building_sequence(box_size, stl_model, output_file, plotting=True):
 
 
 if __name__ == '__main__':
-    generate_building_sequence(100, 'Models/Demo_3.stl', "building_seq.txt", plotting=True)
+    generate_building_sequence(10, 'Models/piramid_50.stl', "building_seq.txt", plotting=True)
 
 
 

@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-# from matplotlib import pyplot
-# from mpl_toolkits import mplot3d
+from matplotlib import pyplot
+from mpl_toolkits import mplot3d
 
 ploting_required = True
 
@@ -20,7 +20,7 @@ def plot_mesh(mesh):
     axes.add_collection3d(mplot3d.art3d.Poly3DCollection(mesh.vectors))
 
     # Auto scale to the mesh size
-    scale = mesh.points.flatten('C')
+    scale = mesh.points.flatten('F')
     axes.auto_scale_xyz(scale, scale, scale)
     # Show the plot to the screen
     print("plotted mesh")
@@ -97,7 +97,7 @@ def plot_vectors(vectors):
 
     # Auto scale to the mesh size
     try:
-        scale = np.concatenate([v[0] for v in vectors]).flatten(-1)
+        scale = np.concatenate([v[0] for v in vectors]).flatten('F')
         axes.auto_scale_xyz(scale, scale, scale)
 
         # Show the plot to the screen

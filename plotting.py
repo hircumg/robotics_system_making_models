@@ -4,15 +4,11 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import pyplot
 from mpl_toolkits import mplot3d
 
-ploting_required = True
 
-def set_ploting_required(need_plot):
-    global ploting_required
-    ploting_required = need_plot
-
-def plot_mesh(mesh):
-    if not ploting_required:
+def plot_mesh(mesh, debug=False):
+    if not debug:
         return 0
+
     # Create a new plot
     figure = pyplot.figure()
     axes = mplot3d.Axes3D(figure)
@@ -27,9 +23,10 @@ def plot_mesh(mesh):
     pyplot.show()
 
 
-def plot_points3d(points3d, box_size, filename=None):
-    # if not ploting_required:
-    #     return 0
+def plot_points3d(points3d, box_size, filename=None, debug=False):
+    if not debug:
+        return 0
+
     """
     Plotting array where indexes is coordinates of plotting points.
     Point will be plotted only if element value is 1
@@ -70,9 +67,10 @@ def plot_points3d(points3d, box_size, filename=None):
         plt.savefig(filename, format='png')
     plt.show()
 
-def plot_lines(lines):
-    if not ploting_required:
+def plot_lines(lines, debug=False):
+    if not debug:
         return 0
+
     """
     Plotting border of slice
     :param lines: array of lines for plotting
@@ -84,8 +82,8 @@ def plot_lines(lines):
 
     plt.show()
 
-def plot_vectors(vectors):
-    if not ploting_required:
+def plot_vectors(vectors, debug=False):
+    if not debug:
         return 0
     # Create a new plot
     figure = pyplot.figure()
@@ -103,9 +101,10 @@ def plot_vectors(vectors):
     except ValueError:
         pass
 
-def plot_points(points, box_size=1):
-    if not ploting_required:
+def plot_points(points, box_size=1, debug=False):
+    if not debug:
         return 0
+
     """
     Plotting array where indexes is coordinates of plotting points.
     Point will be plotted only if element value is 1

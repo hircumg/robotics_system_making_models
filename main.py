@@ -2,7 +2,7 @@ from stl import mesh
 import numpy as np
 from reading import make_slice
 import math
-from plotting import set_ploting_required, plot_points3d
+from plotting import plot_points3d
 import json
 
 # !! set constant
@@ -281,30 +281,15 @@ class Slicer():
     # !! It seems that the process should be universal and depends
     # !! on type in params object
     # !! The first model is obligatory, the second could be None if it useless
-    def processing(self, initial_model, final_model, params):
+    def processing(self, initial_model, final_model, params, debug=False):
         # check params
         if params == None:
             print("Parmeters are not defined")
             return None
-        if params.type == MILING:
-            set_ploting_required(False)
-            initial_model_slice,_ = make_slice(initial_model, params.diameter, params.height, )
-            final_model_slice,_ = make_slice(final_model, params.diameter, params.height)
-            # stl_model = self._substract_stls(initial_model, final_model)
-            # x_min, x_max, y_min, y_max, z_min, z_max = self._find_mins_maxs(initial_model)
-            # !! print("x_min %f, x_max %f, y_min %f, y_max %f, z_min %f, z_max %f" %(x_min, x_max, y_min, y_max, z_min, z_max))
-
-            # model_height = z_max - z_min
-            # layers = math.ceil(float(model_height) / params.height)
-            # !! print("model height %f and no of layers %i" %(model_height, layers))
-            # length = int(math.ceil(abs(x_max - x_min) / params.diameter))
-            # width = int(math.ceil(abs(y_max - y_min) / params.diameter))
-            # sliced_image = np.zeros((length, width, layers))
-
-            # for i in range(layers):
-            #     sliced_image[:, :, i] = self._slice_per_layer(stl_model, params, layers - i)
+        elif params.type == MILING:
+            initial_model_slice,_ = make_slice(initial_model, params.diameter, params.height, debug=debug)
+            final_model_slice,_ = make_slice(final_model, params.diameter, params.height, debug=debug)
             sliced_image = initial_model_slice - final_model_slice
-            plot_points3d(sliced_image, 1, filename='demo.png')
             return sliced_image
         else:
             print("Unexpected process", params.type)
@@ -319,32 +304,20 @@ def findTrajectory(srcName, dstName, params):
         dst_mesh = mesh.Mesh.from_file(dstName)
 
     slicer = Slicer()
-    sliced_mesh = slicer.processing(src_mesh, dst_mesh, params)
+    sliced_mesh = slicer.processing(src_mesh, dst_mesh, params, debug=True)
     if params.type == MILING:
         return get_milling_sequence(sliced_mesh, params.diameter, params.height)
     # default
     return None
 
 
+
 if __name__ == '__main__':
     params = Params(MILING)
     params.configureMilling(20, 5)
-    # Load the STL files
     commands = findTrajectory('models_test/box.stl', 'models_test/pyramid.stl', params)
     print(commands['points'])
 
-# !!    # Load the STL files
-# !!    your_mesh = mesh.Mesh.from_file('Models/piramid_50.stl')
-# !!    your_mesh2 = mesh.Mesh.from_file('Models/piramid_50.stl')
-
-# !!    params = Params('miling')
-# !!    params.configureMilling(20,5)
-
-# !!    slicer = Slicer()
-# !!    sliced_mesh = slicer.milling(your_mesh, your_mesh2, params)
-# !!    # todo append milling with get_milling_sequence
-# !!    commands = get_milling_sequence(sliced_mesh, params.diameter, params.height)
-# !!#     todo add checking points for uniques
 
     output_file = "test.txt"
     if output_file is not None:

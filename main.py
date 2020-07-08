@@ -68,9 +68,11 @@ def get_milling_sequence(sliced_image, drilling_radius, drilling_height):
 
     t_point = 'p0'
     t_point_old = 'p0'
-    points = {t_point: (0, 0, 0)}
-    point_iter = 1
+    #todo provide start point
+    points = {}
+    point_iter = 0
     is_milling = False
+    top_height = sliced_image.shape[2]
     for i in range(sliced_image.shape[2] - 1, 0 - 1, -1):
         for j in range(sliced_image.shape[1]):
             for k in range(sliced_image.shape[0]):
@@ -82,7 +84,7 @@ def get_milling_sequence(sliced_image, drilling_radius, drilling_height):
 
                         t_point = 'p' + str(point_iter + 1)
                         points.update(
-                            {t_point_old: (drilling_radius * k, drilling_radius * j, drilling_height * (i + 1))})
+                            {t_point_old: (drilling_radius * k, drilling_radius * j, drilling_height * top_height)})
                         points.update({t_point: (drilling_radius * k, drilling_radius * j, drilling_height * i)})
                         is_milling = True
                         trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
@@ -97,7 +99,7 @@ def get_milling_sequence(sliced_image, drilling_radius, drilling_height):
 
                         t_point = 'p' + str(point_iter + 1)
                         points.update({t_point_old: (drilling_radius * k, drilling_radius * j, drilling_height * i)})
-                        points.update({t_point: (drilling_radius * k, drilling_radius * j, drilling_height * (i + 1))})
+                        points.update({t_point: (drilling_radius * k, drilling_radius * j, drilling_height * top_height)})
                         is_milling = False
                         trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                         t_point_old = t_point
@@ -110,7 +112,7 @@ def get_milling_sequence(sliced_image, drilling_radius, drilling_height):
 
                 t_point = 'p' + str(point_iter + 1)
                 points.update({t_point_old: (drilling_radius * k, drilling_radius * j, drilling_height * i)})
-                points.update({t_point: (drilling_radius * k, drilling_radius * j, drilling_height * (i + 1))})
+                points.update({t_point: (drilling_radius * k, drilling_radius * j, drilling_height * top_height)})
                 is_milling = False
                 trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                 t_point_old = t_point
@@ -304,7 +306,7 @@ def findTrajectory(srcName, dstName, params):
         dst_mesh = mesh.Mesh.from_file(dstName)
 
     slicer = Slicer()
-    sliced_mesh = slicer.processing(src_mesh, dst_mesh, params, debug=True)
+    sliced_mesh = slicer.processing(src_mesh, dst_mesh, params, debug=False)
     if params.type == MILING:
         return get_milling_sequence(sliced_mesh, params.diameter, params.height)
     # default
@@ -317,12 +319,12 @@ if __name__ == '__main__':
     params.configureMilling(20, 5)
     commands = findTrajectory('models_test/box.stl', 'models_test/pyramid.stl', params)
     print(commands['points'])
+    print(commands['trajectory'])
 
 
     output_file = "test.txt"
     if output_file is not None:
         outputfile = open(output_file,"w")
-    print(commands)
     if output_file is not None:
         outputfile.write(json.dumps(commands['points']) + "\n")
         outputfile.write(json.dumps(commands['trajectory']) + "\n")

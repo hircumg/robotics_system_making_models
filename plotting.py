@@ -1,18 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-# from matplotlib import pyplot
-# from mpl_toolkits import mplot3d
+from matplotlib import pyplot
+from mpl_toolkits import mplot3d
 
-ploting_required = True
 
-def set_ploting_required(need_plot):
-    global ploting_required
-    ploting_required = need_plot
-
-def plot_mesh(mesh):
-    if not ploting_required:
+def plot_mesh(mesh, debug=False):
+    if not debug:
         return 0
+
     # Create a new plot
     figure = pyplot.figure()
     axes = mplot3d.Axes3D(figure)
@@ -20,16 +16,17 @@ def plot_mesh(mesh):
     axes.add_collection3d(mplot3d.art3d.Poly3DCollection(mesh.vectors))
 
     # Auto scale to the mesh size
-    scale = mesh.points.flatten('C')
+    scale = mesh.points.flatten('F')
     axes.auto_scale_xyz(scale, scale, scale)
     # Show the plot to the screen
-    print("plotted mesh")
+    # print("plotted mesh")
     pyplot.show()
 
 
-def plot_points3d(points3d, box_size):
-    if not ploting_required:
+def plot_points3d(points3d, box_size, filename=None, debug=False):
+    if not debug:
         return 0
+
     """
     Plotting array where indexes is coordinates of plotting points.
     Point will be plotted only if element value is 1
@@ -42,9 +39,6 @@ def plot_points3d(points3d, box_size):
     x = []
     y = []
     z = []
-
-
-
 
     if len(points3d.shape) == 3:
         for i in range(points3d.shape[0]):
@@ -68,13 +62,15 @@ def plot_points3d(points3d, box_size):
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    print("plotted 3d points")
-
+    # print("plotted 3d points")
+    if filename is not None:
+        plt.savefig(filename, format='png')
     plt.show()
 
-def plot_lines(lines):
-    if not ploting_required:
+def plot_lines(lines, debug=False):
+    if not debug:
         return 0
+
     """
     Plotting border of slice
     :param lines: array of lines for plotting
@@ -86,8 +82,8 @@ def plot_lines(lines):
 
     plt.show()
 
-def plot_vectors(vectors):
-    if not ploting_required:
+def plot_vectors(vectors, debug=False):
+    if not debug:
         return 0
     # Create a new plot
     figure = pyplot.figure()
@@ -97,7 +93,7 @@ def plot_vectors(vectors):
 
     # Auto scale to the mesh size
     try:
-        scale = np.concatenate([v[0] for v in vectors]).flatten(-1)
+        scale = np.concatenate([v[0] for v in vectors]).flatten('F')
         axes.auto_scale_xyz(scale, scale, scale)
 
         # Show the plot to the screen
@@ -105,9 +101,10 @@ def plot_vectors(vectors):
     except ValueError:
         pass
 
-def plot_points(points, box_size=1):
-    # if not ploting_required:
-    #     return 0
+def plot_points(points, box_size=1, debug=False):
+    if not debug:
+        return 0
+
     """
     Plotting array where indexes is coordinates of plotting points.
     Point will be plotted only if element value is 1

@@ -32,7 +32,7 @@ def is_inside(point, polygon):
     return c_west
 
 
-def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6, frac=0.001):
+def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6, frac=0.001, debug=False):
     """
     make boxed slice for given height
     :param vectors: array of 3d object
@@ -48,8 +48,10 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
     """
     lines_of_slice = []
     triangles_of_slice = []
-    # plot_vectors(vectors)
+    plot_vectors(vectors, debug=debug)
+
     # left only triangles which crosses horizontal plane
+    new_vectors = []
     for triangle in vectors:
         upper = 0
         lower = 0
@@ -60,8 +62,10 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
                 lower += 1
         if upper != 0 and lower != 0:
             triangles_of_slice.append([triangle.copy(), upper])
+        if upper != 0:
+            new_vectors.append(triangle.copy())
     plot_vectors([i[0] for i in triangles_of_slice])
-    print("Triangles taken for height %.3f" % height)
+
     # save only line of triangles in horizontal plane
     for triangle, upper in triangles_of_slice:
         # find points for neadble lines
@@ -99,8 +103,7 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
         lines_of_slice.append([[x_a, y_a], [x_b, y_b]])
     lines_of_slice = np.array(lines_of_slice)
     lines_of_slice = np.around(lines_of_slice - 10 ** (-(decimals + 5)), decimals=decimals)
-    print("Lines taken for height %.3f" % (height))
-    plot_lines(lines_of_slice)
+    plot_lines(lines_of_slice,debug=debug)
 
     # create dotted plane from given group of borders
     length = math.ceil(abs(x_max - x_min) / box_size)
@@ -118,10 +121,9 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
                                                               int(round(y_min)) + j * box_size + k // box_size],
                                                              lines_of_slice)
                         slice_plane_cubes[i, j] = slice_plane_cubes[i, j] % 2
-    print("Slice converted into 2d binary array for height %.3f" % (height))
 
-    plot_points(slice_plane_cubes)
-    return slice_plane_cubes
+    plot_points(slice_plane_cubes,debug=debug)
+    return slice_plane_cubes,new_vectors
 
 
 def convert_to_current_height(slice, begin_height, box_size):
@@ -140,51 +142,46 @@ def convert_to_current_height(slice, begin_height, box_size):
     return points
 
 
-def one_height_slice(mesh, begin_height, box_size, fraction=3):
-    vectors = mesh.vectors.copy()
+def one_height_slice(mesh, begin_height, box_size,box_height, vectors=None, fraction=3, debug=False):
+    if vectors is None:
+        vectors = mesh.vectors.copy()
     x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(mesh)
-    step = box_size // fraction
+    step = box_height // fraction
     height = begin_height
 
-    slice_plane = one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size)
-    print("Temp slice on height %.3f made" % height)
+
+    slice_plane, vectors = one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, debug=debug)
     for iter in range(fraction - 2):
         height += step
-        slice_plane += one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size)
-        print("Temp slice on height %.3f made" % height)
+        t_slice_plane, vectors = one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, debug=debug)
+        slice_plane += t_slice_plane
 
-    slice_plane += one_slice(vectors, begin_height + box_size, x_min, x_max, y_min, y_max, box_size)
-    print("Temp slice on height %.3f made" % (begin_height + box_size))
+    t_slice_plane, vectors = one_slice(vectors, begin_height + box_height, x_min, x_max, y_min, y_max, box_size, debug=debug)
+    slice_plane += t_slice_plane
 
     slice_plane[slice_plane != 0] = 1
 
-    # plot_points(slice_plane)
-    return slice_plane
+    plot_points(slice_plane, debug=debug)
+    return slice_plane,vectors
 
 
-def make_slice(mesh, box_size, fraction=3):
-    beginning_time = time.time()
+def make_slice(mesh, box_size, box_height, fraction=3, debug=False):
+    beginning_time = time.time_ns()
     x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(mesh)
-    print("Size of the 3d object: x:[%.3f, %.3f], y:[%.3f, %.3f], z: %.3f" % (x_min, x_max, y_min, y_max, z_max))
 
     length = int(math.ceil(abs(x_max - x_min) / box_size))
     width = int(math.ceil(abs(y_max - y_min) / box_size))
-    z_size = int(math.ceil(z_max / box_size))
+    z_size = int(math.ceil(z_max / box_height))
 
     sliced_image = np.zeros((length, width, z_size))
-
+    vectors = None
     for i in range(z_size):
-        time_slice = time.time()
-        temp_slice = one_height_slice(mesh, i * box_size, box_size, fraction=fraction)
+        temp_slice,vectors = one_height_slice(mesh, i * box_height, box_size, box_height, vectors=vectors, fraction=fraction, debug=debug)
         sliced_image[:, :, i] = temp_slice
-        current_height = i * box_size + box_size / 2
-        time_slice = time.time() - time_slice
-        print("Height is: %.3f made. Taken time: %i s" % (current_height, time_slice))
 
-    print("Sliced image shape: ", sliced_image.shape)
-    slicing_time = time.time() - beginning_time
-    print('Slicing finished with time %i s' % slicing_time)
-    return sliced_image
+    slicing_time = time.time_ns() - beginning_time
+    return sliced_image, slicing_time
+
 
 
 

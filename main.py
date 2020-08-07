@@ -1,9 +1,12 @@
 from stl import mesh
 import numpy as np
-from plotting import *
-import json
+from reading import make_slice
 import math
+from plotting import plot_points3d
+import json
 
+# !! set constant
+MILING = 'miling'
 
 
 class Params():
@@ -11,13 +14,14 @@ class Params():
         self.type = type
 
     def configureMilling(self, diameter, height):
-        if self.type == 'miling':
+        if self.type == MILING:  # !! set variable
             self.diameter = diameter
             self.height = height
             return 0
         else:
             # todo throw error
             return -1
+
 
 def is_inside(point, polygon):
     """
@@ -47,59 +51,77 @@ def is_inside(point, polygon):
     return c_west
 
 
+# !! to meters
+def xyz_to_meters(dct):
+    for pair in dct.items():
+        v = pair[1]
+        if len(v) == 3:
+            # (x,y,z)
+            dct[pair[0]] = (v[0] * 0.001, v[1] * 0.001, v[2] * 0.001)
+        else:
+            # (x,y,z,w,p,r)
+            dct[pair[0]] = (v[0] * 0.001, v[1] * 0.001, v[2] * 0.001, v[3], v[4], v[5])
+
 
 def get_milling_sequence(sliced_image, drilling_radius, drilling_height):
     trajectory = []
-    points = {'p0':(0,0,0)}
-    point_iter = 1
-    is_milling = False
+
     t_point = 'p0'
     t_point_old = 'p0'
-    for i in range(sliced_image.shape[2]-1,0-1,-1):
+    #todo provide start point
+    points = {}
+    point_iter = 0
+    is_milling = False
+    top_height = sliced_image.shape[2]
+    for i in range(sliced_image.shape[2] - 1, 0 - 1, -1):
         for j in range(sliced_image.shape[1]):
             for k in range(sliced_image.shape[0]):
-                if sliced_image[k,j,i] == 1:
+                if sliced_image[k, j, i] == 1:
                     if not is_milling:
                         t_point = 'p' + str(point_iter)
-                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point_old, t_point]})
+                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                         t_point_old = t_point
 
-                        t_point = 'p' + str(point_iter+1)
-                        points.update({t_point_old : (drilling_radius*k, drilling_radius*j, drilling_height*(i+1))})
-                        points.update({t_point : (drilling_radius*k, drilling_radius*j, drilling_height*i)})
+                        t_point = 'p' + str(point_iter + 1)
+                        points.update(
+                            {t_point_old: (drilling_radius * k, drilling_radius * j, drilling_height * top_height)})
+                        points.update({t_point: (drilling_radius * k, drilling_radius * j, drilling_height * i)})
                         is_milling = True
-                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point_old, t_point]})
+                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                         t_point_old = t_point
                         point_iter += 2
 
                 else:
                     if is_milling:
                         t_point = 'p' + str(point_iter)
-                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point_old, t_point]})
+                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                         t_point_old = t_point
 
-                        t_point = 'p' + str(point_iter+1)
-                        points.update({t_point_old : (drilling_radius*k, drilling_radius*j, drilling_height*i)})
-                        points.update({t_point : (drilling_radius*k, drilling_radius*j, drilling_height*(i+1))})
+                        t_point = 'p' + str(point_iter + 1)
+                        points.update({t_point_old: (drilling_radius * k, drilling_radius * j, drilling_height * i)})
+                        points.update({t_point: (drilling_radius * k, drilling_radius * j, drilling_height * top_height)})
                         is_milling = False
-                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point_old, t_point]})
+                        trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                         t_point_old = t_point
-                        point_iter +=2
+                        point_iter += 2
 
             if is_milling:
                 t_point = 'p' + str(point_iter)
-                trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point_old, t_point]})
+                trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                 t_point_old = t_point
 
-                t_point = 'p' + str(point_iter+1)
-                points.update({t_point_old : (drilling_radius * k, drilling_radius * j, drilling_height * i)})
-                points.update({t_point : (drilling_radius * k, drilling_radius * j, drilling_height * (i + 1))})
+                t_point = 'p' + str(point_iter + 1)
+                points.update({t_point_old: (drilling_radius * k, drilling_radius * j, drilling_height * i)})
+                points.update({t_point: (drilling_radius * k, drilling_radius * j, drilling_height * top_height)})
                 is_milling = False
-                trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point_old, t_point]})
+                trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                 t_point_old = t_point
                 point_iter += 2
 
-    return {'points':points, 'trajectory': trajectory}
+    # !! convert units
+    xyz_to_meters(points)
+    return {'points': points, 'trajectory': trajectory}
+
 
 class Slicer():
     def __init__(self, fraction=3):
@@ -150,20 +172,16 @@ class Slicer():
 
         return x_min, x_max, y_min, y_max, z_min, z_max
 
-
-    def _substract_stls(self,initial_model, final_model):
+    def _substract_stls(self, initial_model, final_model):
         # todo initial_model - final_model
         stl_model = initial_model
         return stl_model
-
 
     def _slice_per_layer(self, mesh, params, layer):
         vectors = mesh.vectors.copy()
         x_min, x_max, y_min, y_max, z_min, z_max = self._find_mins_maxs(mesh)
         step = params.height // self.fraction
         cur_height = layer * params.height
-
-
 
         slice_plane = self._slice_one_height_cont(vectors, cur_height)
         slice_plane_bin = self._binearize(slice_plane, x_min, x_max, y_min, y_max, params)
@@ -173,12 +191,12 @@ class Slicer():
             cur_height += step
             slice_plane = self._slice_one_height_cont(vectors, cur_height)
             slice_plane_bin += self._binearize(slice_plane, x_min, x_max, y_min, y_max, params)
-            print("Temp slice on height %.3f made" % cur_height)
+            # !! print("Temp slice on height %.3f made" % cur_height)
 
-        slice_plane = self._slice_one_height_cont(vectors, (layer+1) * params.height)
+        slice_plane = self._slice_one_height_cont(vectors, (layer + 1) * params.height)
         slice_plane_bin += self._binearize(slice_plane, x_min, x_max, y_min, y_max, params)
         slice_plane_bin[slice_plane_bin != 0] = 1
-        plot_points(slice_plane_bin)
+        # !! plot_points(slice_plane_bin)
         return slice_plane_bin
 
     def _binearize(self, lines_of_slice, x_min, x_max, y_min, y_max, params):
@@ -194,15 +212,16 @@ class Slicer():
                     else:
                         if (i * params.diameter + k % params.diameter < abs(x_max - x_min)) and (
                                 j * params.diameter + k // params.diameter < abs(y_max - y_min)):
-                            slice_plane_cubes[i, j] += is_inside([int(round(x_min)) + i * params.diameter + k % params.diameter,
-                                                                  int(round(y_min)) + j * params.diameter + k // params.diameter],
-                                                                 lines_of_slice)
+                            slice_plane_cubes[i, j] += is_inside(
+                                [int(round(x_min)) + i * params.diameter + k % params.diameter,
+                                 int(round(y_min)) + j * params.diameter + k // params.diameter],
+                                lines_of_slice)
                             slice_plane_cubes[i, j] = slice_plane_cubes[i, j] % 2
 
-        plot_points(slice_plane_cubes)
+        # !! plot_points(slice_plane_cubes)
         return slice_plane_cubes
 
-    def _slice_one_height_cont(self,vectors, height, decimals=6, frac=0.001):
+    def _slice_one_height_cont(self, vectors, height, decimals=6, frac=0.001):
         lines_of_slice = []
         triangles_of_slice = []
         # plot_vectors(vectors)
@@ -217,7 +236,7 @@ class Slicer():
                     lower += 1
             if upper != 0 and lower != 0:
                 triangles_of_slice.append([triangle.copy(), upper])
-        print("Triangles taken for height %.3f" % height)
+        # !! print("Triangles taken for height %.3f" % height)
         # save only line of triangles in horizontal plane
         for triangle, upper in triangles_of_slice:
             # find points for neadble lines
@@ -255,52 +274,57 @@ class Slicer():
             lines_of_slice.append([[x_a, y_a], [x_b, y_b]])
         lines_of_slice = np.array(lines_of_slice)
         lines_of_slice = np.around(lines_of_slice - 10 ** (-(decimals + 5)), decimals=decimals)
-        print("Lines taken for height %.3f" % (height))
-        plot_lines(lines_of_slice)
+        # !! print("Lines taken for height %.3f" % (height))
+        # !! plot_lines(lines_of_slice)
         return lines_of_slice
 
 
-    def milling(self, initial_model, final_model, params):
 
+    # !! It seems that the process should be universal and depends
+    # !! on type in params object
+    # !! The first model is obligatory, the second could be None if it useless
+    def processing(self, initial_model, final_model, params, debug=False):
         # check params
-        if params.type != 'miling':
+        if params == None:
+            print("Parmeters are not defined")
+            return None
+        elif params.type == MILING:
+            initial_model_slice,_ = make_slice(initial_model, params.diameter, params.height, debug=debug)
+            final_model_slice,_ = make_slice(final_model, params.diameter, params.height, debug=debug)
+            sliced_image = initial_model_slice - final_model_slice
+            return sliced_image
+        else:
+            print("Unexpected process", params.type)
             return None
 
-        stl_model = self._substract_stls(initial_model,final_model)
-        x_min, x_max, y_min, y_max, z_min, z_max = self._find_mins_maxs(stl_model)
-        print("x_min %f, x_max %f, y_min %f, y_max %f, z_min %f, z_max %f" %(x_min, x_max, y_min, y_max, z_min, z_max))
-
-        model_height = z_max - z_min
-        layers = math.ceil(float(model_height) / params.height)
-        print("model height %f and no of layers %i" %(model_height, layers))
-        length = int(math.ceil(abs(x_max - x_min) / params.diameter))
-        width = int(math.ceil(abs(y_max - y_min) / params.diameter))
-        sliced_image = np.zeros((length, width, layers))
-
-        for i in range(layers):
-            sliced_image[:,:,i] = self._slice_per_layer(stl_model, params,layers-i)
 
 
-        return sliced_image
-
-if __name__ == '__main__':
-    # Load the STL files
-    your_mesh = mesh.Mesh.from_file('Models/piramid_50.stl')
-    your_mesh2 = mesh.Mesh.from_file('Models/piramid_50.stl')
-
-    params = Params('miling')
-    params.configureMilling(20,5)
+# !! collect actions
+def findTrajectory(srcName, dstName, params):
+    src_mesh = mesh.Mesh.from_file(srcName)
+    if dstName:
+        dst_mesh = mesh.Mesh.from_file(dstName)
 
     slicer = Slicer()
-    sliced_mesh = slicer.milling(your_mesh, your_mesh2, params)
-    # todo append milling with get_milling_sequence
-    commands = get_milling_sequence(sliced_mesh, params.diameter, params.height)
-#     todo add checking points for uniques
+    sliced_mesh = slicer.processing(src_mesh, dst_mesh, params, debug=False)
+    if params.type == MILING:
+        return get_milling_sequence(sliced_mesh, params.diameter, params.height)
+    # default
+    return None
+
+
+
+if __name__ == '__main__':
+    params = Params(MILING)
+    params.configureMilling(20, 5)
+    commands = findTrajectory('models_test/box.stl', 'models_test/pyramid.stl', params)
+    print(commands['points'])
+    print(commands['trajectory'])
+
 
     output_file = "test.txt"
     if output_file is not None:
         outputfile = open(output_file,"w")
-    print(commands)
     if output_file is not None:
         outputfile.write(json.dumps(commands['points']) + "\n")
         outputfile.write(json.dumps(commands['trajectory']) + "\n")

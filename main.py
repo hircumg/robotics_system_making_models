@@ -289,10 +289,9 @@ class Slicer():
             print("Parmeters are not defined")
             return None
         elif params.type == MILING:
-            # initial_model_slice,_ = make_slice(initial_model, params.diameter, params.height, debug=debug)
+            initial_model_slice,_ = make_slice(initial_model, params.diameter, params.height, debug=debug)
             final_model_slice,_ = make_slice(final_model, params.diameter, params.height, debug=debug)
-            # sliced_image = initial_model_slice - final_model_slice
-            sliced_image = final_model_slice
+            sliced_image = initial_model_slice - final_model_slice
             return sliced_image
         else:
             print("Unexpected process", params.type)
@@ -318,8 +317,8 @@ def findTrajectory(srcName, dstName, params):
 if __name__ == '__main__':
     params = Params(MILING)
     params.configureMilling(20, 5)
-    # commands = findTrajectory('models_test/box.stl', 'models_test/pyramid.stl', params)
-    commands = findTrajectory('models_test/box.stl', 'models_test/hemisphere.stl', params)
+    commands = findTrajectory('models_test/box.stl', 'models_test/pyramid.stl', params)
+    # commands = findTrajectory('models_test/box.stl', 'models_test/hemisphere.stl', params)
     print(commands['points'])
     print(commands['trajectory'])
 

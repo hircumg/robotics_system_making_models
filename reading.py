@@ -104,11 +104,7 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
     lines_of_slice = np.array(lines_of_slice)
     lines_of_slice = np.around(lines_of_slice - 10 ** (-(decimals + 5)), decimals=decimals)
     plot_lines(lines_of_slice,debug=debug)
-    if height == 10 or height == 45:
-        plot_lines(lines_of_slice,debug=True)
-        f_name = f'lines_{height}.txt'
-        lines_of_slice.dump(f_name)
-        # print(lines_of_slice)
+
 
     # create dotted plane from given group of borders
     length = math.ceil(abs(x_max - x_min) / box_size)

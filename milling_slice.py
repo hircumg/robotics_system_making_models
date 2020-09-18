@@ -264,10 +264,10 @@ milling_diameter = 10
 distance = milling_diameter - milling_diameter*threshold
 object_offset = -milling_diameter/2 - 1
 middle_point = get_avg(borders2)
-object = np.load(examples[3], allow_pickle=True)
+object = np.load(examples[1], allow_pickle=True)
 object_middle_point = get_avg(object)
 inc_object = add_offset(object,object_offset, object_middle_point)
-new_lines =[create_milling_line(borders2,distance,middle_point,inc_object)[4]]
+new_lines =create_milling_line(borders2,distance,middle_point,inc_object)
 plot_lines(object, inc_object,borders=new_lines, middle_point=middle_point)
 
 updated_borders = update_intersections(new_lines,inc_object)

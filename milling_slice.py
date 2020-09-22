@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from math import atan2, sin, cos, sqrt, ceil
 
+import matplotlib as mpl
+mpl.rcParams['figure.dpi'] = 300
 
 def plot_lines(lines,inc_lines, borders=None, middle_point=None):
     """
@@ -34,7 +36,8 @@ def plot_lines(lines,inc_lines, borders=None, middle_point=None):
         plt.plot([middle_point[0]], [middle_point[1]], marker='.', markerfacecolor='yellow', markersize=10)
 
     # plt.axis([-1, 101, -1, 101])
-    plt.axis([-21, 121, -21, 121])
+    # plt.axis([-21, 121, -21, 121])
+    plt.axis([-6, 106, -6, 106])
     # plt.axis([-21, 21, 81, 121])
     plt.show()
 
@@ -157,9 +160,11 @@ def generate_steps(object_projection, lines, num, middle_point, initial_distance
         steps.append(cur_steps)
     return steps
 
+def calc_dist(point1, point2):
+    return np.sqrt(np.sum((point1 - point2) ** 2))
 
 
-def create_milling_line(lines, distance, middle_point, last_border, repeats = -1):
+def create_milling_line(lines, distance, middle_point, last_border, milling_diam, repeats = -1):
     array_of_lines = []
     if repeats == -1:
         # i = 0
@@ -190,6 +195,8 @@ def create_milling_line(lines, distance, middle_point, last_border, repeats = -1
                     new_line.append(new_point)
                 # if last_border is None or ((not is_inside(new_line[0], last_border)) and (not is_inside(new_line[1], last_border))):
                 new_lines.append(new_line)
+                if calc_dist(new_line[0],new) # todo
+
             array_of_lines.append(np.array(new_lines))
             dst = get_min_distance(np.array(new_lines), middle_point) < max_dst
             # i +=1
@@ -267,7 +274,7 @@ object = np.load(examples[2], allow_pickle=True)
 object_middle_point = get_avg(object)
 
 inc_object = add_offset(object,object_offset, object_middle_point)
-new_lines =create_milling_line(inc_object,distance,middle_point,borders2)
+new_lines =create_milling_line(inc_object,distance,middle_point,borders2, milling_diameter)
 new_lines.reverse()
 # add clear path
 new_lines.append(add_offset(object,object_offset+clear_offset,object_middle_point))

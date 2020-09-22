@@ -1,6 +1,8 @@
+
 import matplotlib.pyplot as plt
 import numpy as np
-from math import atan2, sin, cos, sqrt
+from math import atan2, sin, cos, sqrt, ceil
+
 
 def plot_lines(lines,inc_lines, borders=None, middle_point=None):
     """
@@ -10,14 +12,14 @@ def plot_lines(lines,inc_lines, borders=None, middle_point=None):
     """
     if lines is not None:
         for line in lines:
-            plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='o',
-                     markerfacecolor='red', markersize=1, color='skyblue', linewidth=4)
+            plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='.',
+                     markerfacecolor='red', markersize=1, color='yellow', linewidth=1)
      # plt.plot(all_lines, marker='o', markerfacecolor='red', markersize=5, color='skyblue', linewidth=4)
 
     if inc_lines is not None:
         for line in inc_lines:
-            plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='.',
-                     markerfacecolor='red', markersize=1, color='skyblue', linewidth=2)
+            plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='o',
+                     markerfacecolor='red', markersize=1, color='skyblue', linewidth=1)
      # plt.plot(all_lines, marker='o', markerfacecolor='red', markersize=5, color='skyblue', linewidth=4)
 
     if borders is not None:
@@ -25,13 +27,15 @@ def plot_lines(lines,inc_lines, borders=None, middle_point=None):
             for lines in borders:
                 for line in lines:
                     plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='o',
-                             markerfacecolor='black', markersize=2, color='red', linewidth=1)
+                             markerfacecolor='black', markersize=1, color='red', linewidth=1)
 
     if middle_point is not None:
 
         plt.plot([middle_point[0]], [middle_point[1]], marker='.', markerfacecolor='yellow', markersize=10)
 
-    plt.axis([-1, 101, -1, 101])
+    # plt.axis([-1, 101, -1, 101])
+    plt.axis([-21, 121, -21, 121])
+    # plt.axis([-21, 21, 81, 121])
     plt.show()
 
 
@@ -113,26 +117,84 @@ examples = ['lines_15.txt', 'lines_55.txt', 'lines_10.txt', 'lines_45.txt']
 #     plot_lines(lines, borders2)
 #     # print(lines)
 
-def create_milling_line(lines, distance, middle_point, object=None, repeats = -1):
+def get_max_distance(lines, middle_point):
+    points = np.unique(lines.reshape(-1,2), axis=0)
+    max_dst = -1
+    point_bigger = None
+    for point in points:
+        dst = np.sqrt(np.sum((point - middle_point) ** 2))
+        if dst > max_dst:
+            max_dst = dst
+            point_bigger = point
+
+    return max_dst
+
+
+def get_min_distance(lines, middle_point):
+    points = np.unique(lines.reshape(-1,2), axis=0)
+    max_dst = 10000
+    point_bigger = None
+    for point in points:
+        dst = np.sqrt(np.sum((point - middle_point) ** 2))
+        if dst < max_dst:
+            max_dst = dst
+            point_bigger = point
+
+    return max_dst
+
+def generate_steps(object_projection, lines, num, middle_point, initial_distance):
+    steps = []
+    for i,line in enumerate(lines):
+        cur_steps = []
+        for j,point in enumerate(line):
+            max_dist = np.sqrt(np.sum((object_projection[i][j] - middle_point) ** 2))
+            dst = np.sqrt(np.sum((lines[i][j] - middle_point) ** 2))
+            extra= max_dist - dst
+            # extra = extra if extra > initial_distance/2 else initial_distance/2
+            extra = extra if extra > 0 else 0
+            new_step = round(extra / num, 2)
+            cur_steps.append(new_step)
+        steps.append(cur_steps)
+    return steps
+
+
+
+def create_milling_line(lines, distance, middle_point, last_border, repeats = -1):
     array_of_lines = []
     if repeats == -1:
-        i = 0
+        # i = 0
         dst = True
-        while dst:
+        max_dst = get_max_distance(last_border,middle_point) - distance*0.25
+        extra = max_dst-get_min_distance(np.array(lines),middle_point)
+        num = ceil((max_dst-get_min_distance(np.array(lines),middle_point))/distance)
+        new_step = round(extra/num,2)
+        print(extra, num, distance, new_step, extra/new_step)
+        distance = new_step
+        object_projection = get_object_projection(lines,middle_point,last_border)
+        steps = generate_steps(object_projection,lines,num,middle_point, distance)
+        # print(max_dst, (max_dst-get_min_distance(np.array(lines),middle_point)),
+        #       (max_dst-get_min_distance(np.array(lines),middle_point))/distance)
+        # print(get_min_distance(np.array(lines),middle_point), get_max_distance(np.array(lines),middle_point))
+        # while dst:
+        for i in range(num+1):
             new_lines = []
-            for line in lines:
+            for j,line in enumerate(lines):
                 new_line = []
-                for point in line:
+                for k,point in enumerate(line):
+                    cur_distance = steps[j][k]
+                    # cur_distance = distance
                     atg = atan2(middle_point[1] - point[1], middle_point[0] - point[0])
-                    new_point = [point[0] + distance * i * cos(atg), point[1] + distance * i * sin(atg)]
-                    dst = (new_point[1] - middle_point[1])**2 + (new_point[0] - middle_point[1])**2 > distance**2
+                    new_point = [point[0] - cur_distance * i * cos(atg), point[1] - cur_distance * i * sin(atg)]
+                    # dst = np.sum((new_point - middle_point) **2 ) < max_dst**2
                     # print(f"new_point: {new_point}, dst: {dst}")
                     new_line.append(new_point)
-                if object is None or ((not is_inside(new_line[0],object)) and (not is_inside(new_line[1], object))):
-                    new_lines.append(new_line)
+                # if last_border is None or ((not is_inside(new_line[0], last_border)) and (not is_inside(new_line[1], last_border))):
+                new_lines.append(new_line)
             array_of_lines.append(np.array(new_lines))
-            i +=1
-
+            dst = get_min_distance(np.array(new_lines), middle_point) < max_dst
+            # i +=1
+            # print(i, dst, get_min_distance(np.array(new_lines), middle_point))
+        print(f"Extended: {i} times")
     else:
         for i in range(repeats):
             new_lines = []
@@ -143,9 +205,9 @@ def create_milling_line(lines, distance, middle_point, object=None, repeats = -1
                     new_line.append([point[0]+distance*i*cos(atg), point[1]+distance*i*sin(atg)])
                 new_lines.append(new_line)
             array_of_lines.append(np.array(new_lines))
-
     return array_of_lines
-    
+
+
 def add_offset(lines, distance, middle_point):
     new_lines = []
     for line in lines:
@@ -166,109 +228,50 @@ def line_intersects(border_line, object_line):
     denominator = (y4-y3)*(x2-x1) - (x4-x3) * (y2-y1)
     if denominator != 0:
         u_a = numerator/denominator
-        if u_a >= 0 and u_a <= 1:
-            x = x1 + u_a * (x2 - x1)
-            y = y1 + u_a * (y2 - y1)
+        # if u_a >= 0 and u_a <= 1:
+        x = x1 + u_a * (x2 - x1)
+        y = y1 + u_a * (y2 - y1)
 
-            numerator = (x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)
-            u_b = numerator / denominator
-            if u_b >= 0 and u_b <= 1:
-                return np.array([x, y])
-    return None
-
-def check_point_ends(point, line):
-    for p in line:
-        if point[0] == p[0] and point[1] == p[1]:
-            return True
-    return False
-
-def update_intersections(borders, inc_object):
-    new_borders = []
-    for border in borders:
-        new_border = []
-        for i,b_line in enumerate(border):
-            t_border = []
-            was_intersect = False
-            b_line_copy = b_line
-            for j,line in enumerate(inc_object):
-                point = line_intersects(b_line_copy,line)
-                if not was_intersect:
-                    if point is not None:
-                        was_intersect = True
-                        if i == 0:
-                            if check_point_ends(b_line_copy[0],border[i+1]):
-                                t_border.append([b_line[1], point])
-                                b_line = [b_line[0], point]
-                            else:
-                                t_border.append([b_line[0], point])
-                                b_line = [point, b_line[1]]
-                        else:
-                            if check_point_ends(b_line_copy[0],border[i-1]):
-                                t_border.append([b_line[0], point])
-                                b_line = [point, b_line[1]]
-                            else:
-                                t_border.append([b_line[1], point])
-                                b_line = [b_line[0], point]
-
-                        if j == 0:
-                            if check_point_ends(line[0],inc_object[j+1]):
-                                t_border.append([line[0],point])
-                            else:
-                                t_border.append([point,line[1]])
-                        else:
-                            if check_point_ends(line[0],inc_object[j-1]):
-                                t_border.append([point,line[1]])
-                            else:
-                                t_border.append([line[0], point])
-
-                else:
-                    if point is None:
-                        t_border.append(line)
-                    else:
-                        was_intersect = False
-                        if j == 0:
-                            if check_point_ends(line[0],inc_object[j+1]):
-                                t_border.append([line[1],point])
-                            else:
-                                t_border.append([point,line[0]])
-                        else:
-                            if check_point_ends(line[0],inc_object[j-1]):
-                                t_border.append([point,line[0]])
-                            else:
-                                t_border.append([line[1],point])
-
-                        if i == 0:
-                            if check_point_ends(b_line_copy[0],border[i+1]):
-                                # t_border.append([b_line_copy[1], point])
-                                b_line = [b_line[0], point]
-                            else:
-                                # t_border.append([b_line_copy[0], point])
-                                b_line = [point, b_line[1]]
-                        else:
-                            if check_point_ends(b_line_copy[0],border[i-1]):
-                                # t_border.append([b_line_copy[0], point])
-                                b_line = [point, b_line[1]]
-                            else:
-                                # t_border.append([b_line_copy[1], point])
-                                b_line = [b_line[0], point]
-            t_border.append(b_line)
-            new_border += t_border
-
-        new_borders.append(new_border)
-    return new_borders
+        numerator = (x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)
+        u_b = numerator / denominator
+        # if u_b >= 0 and u_b <= 1:
+        return np.array([x, y]), u_b
+    return None, None
 
 
+def get_object_projection(lines, middle_point, borders):
+    new_lines = []
+    for line in lines:
+        c_line = []
+        for point in line:
+            new_point_min = None
+            u_b_min = 1000
+            for border in borders:
+                new_point, u_b = line_intersects(border, [middle_point, point])
+                if new_point is not None and u_b > 0 and u_b < u_b_min:
+                    new_point_min = new_point
+                    u_b_min = u_b
+            c_line.append(new_point_min)
+        new_lines.append(np.array(c_line))
 
-threshold = 0.15
+    return new_lines
+
+
+clear_offset = 1
+threshold = 1 - 0.15
 milling_diameter = 10
-distance = milling_diameter - milling_diameter*threshold
-object_offset = -milling_diameter/2 - 1
+distance = milling_diameter*threshold
+object_offset = -milling_diameter/2 - clear_offset
 middle_point = get_avg(borders2)
-object = np.load(examples[1], allow_pickle=True)
+object = np.load(examples[2], allow_pickle=True)
 object_middle_point = get_avg(object)
-inc_object = add_offset(object,object_offset, object_middle_point)
-new_lines =create_milling_line(borders2,distance,middle_point,inc_object)
-plot_lines(object, inc_object,borders=new_lines, middle_point=middle_point)
 
-updated_borders = update_intersections(new_lines,inc_object)
-plot_lines(object, inc_object,borders=updated_borders, middle_point=middle_point)
+inc_object = add_offset(object,object_offset, object_middle_point)
+new_lines =create_milling_line(inc_object,distance,middle_point,borders2)
+new_lines.reverse()
+# add clear path
+new_lines.append(add_offset(object,object_offset+clear_offset,object_middle_point))
+# plot_lines(object, borders2,borders=new_lines, middle_point=middle_point)
+
+object_projection = get_object_projection(inc_object,middle_point,borders2)
+plot_lines(object, object_projection,borders=new_lines, middle_point=middle_point)

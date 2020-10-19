@@ -41,6 +41,44 @@ def plot_lines(lines,inc_lines, borders=None, middle_point=None):
     # plt.axis([-21, 21, 81, 121])
     plt.show()
 
+def plot_lines_new(lines,inc_lines, borders=None, clear_border=None, middle_point=None):
+    """
+    Plotting border of slice
+    :param lines: array of lines for plotting
+    :return: nothing
+    """
+    if lines is not None:
+        for line in lines:
+            plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='.',
+                     markerfacecolor='red', markersize=1, color='yellow', linewidth=1)
+     # plt.plot(all_lines, marker='o', markerfacecolor='red', markersize=5, color='skyblue', linewidth=4)
+
+    if inc_lines is not None:
+        for line in inc_lines:
+            plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='o',
+                     markerfacecolor='red', markersize=1, color='skyblue', linewidth=1)
+     # plt.plot(all_lines, marker='o', markerfacecolor='red', markersize=5, color='skyblue', linewidth=4)
+
+    if borders is not None:
+        for i,line in enumerate(borders):
+
+            plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='o',
+                     markerfacecolor='black', markersize=1 if i > 0 else 3, color='red', linewidth=1)
+
+    if clear_border is not None:
+        for i,line in enumerate(clear_border):
+            plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='o',
+                     markerfacecolor='black', markersize=1 if i > 0 else 3, color='green', linewidth=1)
+
+    if middle_point is not None:
+
+        plt.plot([middle_point[0]], [middle_point[1]], marker='.', markerfacecolor='yellow', markersize=10)
+
+    # plt.axis([-1, 101, -1, 101])
+    # plt.axis([-21, 121, -21, 121])
+    plt.axis([-6, 106, -6, 106])
+    # plt.axis([-21, 21, 81, 121])
+    plt.show()
 
 def plot_borders(array_of_lines, borders = None, middle_point=None):
     """
@@ -161,58 +199,84 @@ def generate_steps(object_projection, lines, num, middle_point, initial_distance
     return steps
 
 def calc_dist(point1, point2):
+    point1 = np.array(point1)
+    point2 = np.array(point2)
     return np.sqrt(np.sum((point1 - point2) ** 2))
 
+def calc_dict_bw_lines(line1, line2):
+    return min(min(calc_dist(line1[0], line2[0]),calc_dist(line1[0], line2[1])),
+                min(calc_dist(line1[1], line2[0]),calc_dist(line1[1], line2[1])))
 
-def create_milling_line(lines, distance, middle_point, last_border, milling_diam, repeats = -1):
+def create_milling_line(lines, distance, middle_point, last_border, milling_diam):
     array_of_lines = []
-    if repeats == -1:
-        # i = 0
-        dst = True
-        max_dst = get_max_distance(last_border,middle_point) - distance*0.25
-        extra = max_dst-get_min_distance(np.array(lines),middle_point)
-        num = ceil((max_dst-get_min_distance(np.array(lines),middle_point))/distance)
-        new_step = round(extra/num,2)
-        print(extra, num, distance, new_step, extra/new_step)
-        distance = new_step
-        object_projection = get_object_projection(lines,middle_point,last_border)
-        steps = generate_steps(object_projection,lines,num,middle_point, distance)
-        # print(max_dst, (max_dst-get_min_distance(np.array(lines),middle_point)),
-        #       (max_dst-get_min_distance(np.array(lines),middle_point))/distance)
-        # print(get_min_distance(np.array(lines),middle_point), get_max_distance(np.array(lines),middle_point))
-        # while dst:
-        for i in range(num+1):
-            new_lines = []
-            for j,line in enumerate(lines):
-                new_line = []
-                for k,point in enumerate(line):
-                    cur_distance = steps[j][k]
-                    # cur_distance = distance
-                    atg = atan2(middle_point[1] - point[1], middle_point[0] - point[0])
-                    new_point = [point[0] - cur_distance * i * cos(atg), point[1] - cur_distance * i * sin(atg)]
-                    # dst = np.sum((new_point - middle_point) **2 ) < max_dst**2
-                    # print(f"new_point: {new_point}, dst: {dst}")
-                    new_line.append(new_point)
-                # if last_border is None or ((not is_inside(new_line[0], last_border)) and (not is_inside(new_line[1], last_border))):
-                new_lines.append(new_line)
-                if calc_dist(new_line[0],new) # todo
+    first_point = []
+    last_point = []
+    # i = 0
+    dst = True
+    max_dst = get_max_distance(last_border,middle_point) - distance*0.25
+    extra = max_dst-get_min_distance(np.array(lines),middle_point)
+    num = ceil((max_dst-get_min_distance(np.array(lines),middle_point))/distance)
+    new_step = round(extra/num,2)
+    print(extra, num, distance, new_step, extra/new_step)
+    distance = new_step
+    object_projection = get_object_projection(lines,middle_point,last_border)
+    steps = generate_steps(object_projection,lines,num,middle_point, distance)
+    # print(max_dst, (max_dst-get_min_distance(np.array(lines),middle_point)),
+    #       (max_dst-get_min_distance(np.array(lines),middle_point))/distance)
+    # print(get_min_distance(np.array(lines),middle_point), get_max_distance(np.array(lines),middle_point))
+    # while dst:
+    len_of_lines = len(lines)
 
-            array_of_lines.append(np.array(new_lines))
-            dst = get_min_distance(np.array(new_lines), middle_point) < max_dst
-            # i +=1
-            # print(i, dst, get_min_distance(np.array(new_lines), middle_point))
-        print(f"Extended: {i} times")
-    else:
-        for i in range(repeats):
-            new_lines = []
-            for line in lines:
-                new_line = []
-                for point in line:
-                    atg =atan2(middle_point[1]-point[1],middle_point[0]-point[0])
-                    new_line.append([point[0]+distance*i*cos(atg), point[1]+distance*i*sin(atg)])
+    for i in range(num+1):
+        new_lines = []
+        for j,line in enumerate(lines):
+            new_line = []
+            for k,point in enumerate(line):
+                cur_distance = steps[j][k]
+                # cur_distance = distance
+                atg = atan2(middle_point[1] - point[1], middle_point[0] - point[0])
+                new_point = [point[0] - cur_distance * i * cos(atg), point[1] - cur_distance * i * sin(atg)]
+                # dst = np.sum((new_point - middle_point) **2 ) < max_dst**2
+                # print(f"new_point: {new_point}, dst: {dst}")
+                new_line.append(new_point)
+            # if last_border is None or ((not is_inside(new_line[0], last_border)) and (not is_inside(new_line[1], last_border))):
+
+            if j == 1:
+                if abs(calc_dist(new_lines[0][0], new_line[0])) < 0.0001:
+                    first_point.append(new_line[0])
+                else:
+                    first_point.append(new_line[1])
+
+            # if j > len_of_lines//2 and (calc_dict_bw_lines(new_line,new_lines[0]) < distance):
+            if j > len_of_lines//2 and \
+                    (min(calc_dist(first_point[i], new_line[0]),calc_dist(first_point[i], new_line[1])) < distance/2.0):
                 new_lines.append(new_line)
-            array_of_lines.append(np.array(new_lines))
-    return array_of_lines
+                if calc_dist(first_point[i], new_line[0]) < distance/2.0:
+                    last_point.append(new_line[0])
+                else:
+                    last_point.append(new_line[1])
+                if i != 0:
+                    break
+            new_lines.append(new_line)
+
+
+
+        array_of_lines.append(new_lines)
+        dst = get_min_distance(np.array(new_lines), middle_point) < max_dst
+        # i +=1
+        # print(i, dst, get_min_distance(np.array(new_lines), middle_point))
+    print(f"Extended: {i} times")
+
+    array_of_lines.reverse()
+    first_point.reverse()
+    last_point.reverse()
+    new_array_of_lines = []
+    for i in range(len(array_of_lines)-1):
+        new_array_of_lines += array_of_lines[i]
+        new_array_of_lines += [[last_point[i], first_point[i+1]]]
+    new_array_of_lines += array_of_lines[-1]
+    new_array_of_lines = np.array(new_array_of_lines)
+    return new_array_of_lines
 
 
 def add_offset(lines, distance, middle_point):
@@ -270,15 +334,15 @@ milling_diameter = 10
 distance = milling_diameter*threshold
 object_offset = -milling_diameter/2 - clear_offset
 middle_point = get_avg(borders2)
-object = np.load(examples[2], allow_pickle=True)
+object = np.load(examples[3], allow_pickle=True)
 object_middle_point = get_avg(object)
 
 inc_object = add_offset(object,object_offset, object_middle_point)
-new_lines =create_milling_line(inc_object,distance,middle_point,borders2, milling_diameter)
-new_lines.reverse()
+new_lines = create_milling_line(inc_object,distance,middle_point,borders2, milling_diameter)
+
 # add clear path
-new_lines.append(add_offset(object,object_offset+clear_offset,object_middle_point))
+clear_border  = add_offset(object,object_offset+clear_offset,object_middle_point)
 # plot_lines(object, borders2,borders=new_lines, middle_point=middle_point)
 
 object_projection = get_object_projection(inc_object,middle_point,borders2)
-plot_lines(object, object_projection,borders=new_lines, middle_point=middle_point)
+plot_lines_new(object, object_projection,borders=new_lines,clear_border=clear_border, middle_point=middle_point)

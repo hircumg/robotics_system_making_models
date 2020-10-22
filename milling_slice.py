@@ -243,21 +243,49 @@ def create_milling_line(lines, distance, middle_point, last_border, milling_diam
 
             if j == 1:
                 if abs(calc_dist(new_lines[0][0], new_line[0])) < 0.0001:
-                    first_point.append(new_line[0])
+                    first_point.append(new_lines[0][0])
                 else:
-                    first_point.append(new_line[1])
+                    first_point.append(new_lines[0][1])
+
+
 
             # if j > len_of_lines//2 and (calc_dict_bw_lines(new_line,new_lines[0]) < distance):
-            if j > len_of_lines//2 and \
-                    (min(calc_dist(first_point[i], new_line[0]),calc_dist(first_point[i], new_line[1])) < distance/2.0):
-                new_lines.append(new_line)
-                if calc_dist(first_point[i], new_line[0]) < distance/2.0:
-                    last_point.append(new_line[0])
+            if i != 0 and j >= len_of_lines//2 and \
+                    (min(calc_dist(first_point[i], new_line[0]),calc_dist(first_point[i], new_line[1])) <= distance/2.0):
+                d1 = calc_dist(first_point[i], new_line[0])
+                d2 = calc_dist(first_point[i], new_line[1])
+                x0, y0 = new_line[0]
+                x1, y1 = new_line[1]
+                x2, y2 = first_point[i]
+                R = distance/2.0
+                Lk = (y1 - y0)/(x1- x0)
+                Lb = y0 - x0 * (y1-y0)/(x1-x0)
+                Da = 1 + Lk**2
+                Db = Lk*Lb - y2 * Lk - x2
+                Dc = Lb**2 + y2**2 + x2**2 - R**2 -2 * y2 * Lb
+                D = Db**2 - Da * Dc
+                D = sqrt(D)
+                x = [(-Db - D)/(Da), (-Db + D)/(Da)]
+                y = [Lk * x[0] + Lb, Lk * x[1] + Lb]
+                if x[0] >= min(x0,x1) and x[0] <= max(x0,x1) and y[0] >= min(y0,y1) and y[0] <= max(y0,y1):
+                    last_point_t = [x[0], y[0]]
                 else:
-                    last_point.append(new_line[1])
-                if i != 0:
-                    break
+                    last_point_t = [x[1], y[1]]
+                last_point.append(last_point_t)
+
+                if calc_dist(first_point[i], new_line[0]) <= distance/2.0:
+                    new_line = [new_line[1], last_point_t]
+                else:
+                    new_line = [new_line[0], last_point_t]
+
+                # if i != 0:
+                    # to close the pre-cleaning path
+                new_lines.append(new_line)
+                break
             new_lines.append(new_line)
+        if i == 0:
+            last_point.append(first_point[i])
+        print(f"{i}: {len(first_point)}|{len(last_point)} ")
 
 
 
@@ -268,6 +296,7 @@ def create_milling_line(lines, distance, middle_point, last_border, milling_diam
     print(f"Extended: {i} times")
 
     array_of_lines.reverse()
+
     first_point.reverse()
     last_point.reverse()
     new_array_of_lines = []
@@ -276,7 +305,7 @@ def create_milling_line(lines, distance, middle_point, last_border, milling_diam
         new_array_of_lines += [[last_point[i], first_point[i+1]]]
     new_array_of_lines += array_of_lines[-1]
     new_array_of_lines = np.array(new_array_of_lines)
-    return new_array_of_lines
+    return new_array_of_lines, last_point[-1]
 
 
 def add_offset(lines, distance, middle_point):
@@ -338,7 +367,7 @@ object = np.load(examples[3], allow_pickle=True)
 object_middle_point = get_avg(object)
 
 inc_object = add_offset(object,object_offset, object_middle_point)
-new_lines = create_milling_line(inc_object,distance,middle_point,borders2, milling_diameter)
+new_lines, last_point = create_milling_line(inc_object,distance,middle_point,borders2, milling_diameter)
 
 # add clear path
 clear_border  = add_offset(object,object_offset+clear_offset,object_middle_point)

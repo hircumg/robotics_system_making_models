@@ -363,7 +363,7 @@ milling_diameter = 10
 distance = milling_diameter*threshold
 object_offset = -milling_diameter/2 - clear_offset
 middle_point = get_avg(borders2)
-object = np.load(examples[3], allow_pickle=True)
+object = np.load(examples[2], allow_pickle=True)
 object_middle_point = get_avg(object)
 
 inc_object = add_offset(object,object_offset, object_middle_point)

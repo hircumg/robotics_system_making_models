@@ -34,8 +34,6 @@ def plot_lines(group_of_lines):
 
 
 
-
-
 def to_points_shape(lines_arr):
     points = []
     H1 = np.array([[1, 0, 1, 0],[0, 1, 0, 1]])
@@ -49,6 +47,28 @@ def to_points_shape(lines_arr):
         points.append(line[(same_point + 1) % 2])
     return np.array(points)
 
+def to_points_shape_unsorded(lines_arr):
+    points = []
+    H1 = np.array([[1, 0, 1, 0],[0, 1, 0, 1]])
+    H2 = np.array([[1, 1, 0, 0],[0, 0, 1, 1]])
+    same_point = (np.argmin(np.sum((lines_arr[0].T@H1-lines_arr[1].T@H2)**2,axis=0)))%2
+    points.append(lines_arr[0][(same_point+1)%2])
+    points.append(lines_arr[0][same_point])
+    lines_arr = np.delete(lines_arr, 0, axis=0)
+    i = 0
+    H1 = np.array([[1, 1]])
+    while len(lines_arr) > 0:
+        prev_point = points[-1].reshape((1, -1))
+        for i,line in enumerate(lines_arr):
+            is_requested_line = np.min(np.sum((line.T - prev_point.T @ H1) ** 2, axis=0)) < 0.0001
+            if is_requested_line:
+                same_point = (np.argmin(np.sum((line.T - prev_point.T @ H1) ** 2, axis=0))) % 2
+                points.append(line[(same_point + 1) % 2])
+                lines_arr = np.delete(lines_arr, i, axis=0)
+
+
+    return np.array(points)
+
 
 def add_intersections(border1, border2):
     new_border1 = []
@@ -56,10 +76,10 @@ def add_intersections(border1, border2):
     intersections = []
     new_border2 = border2.copy()
     for i in range(1, len(border1)):
-        line = border1[i-1:i+1]
+        line = border1[i-1:i+1].copy()
         j = 1
         while j < len(new_border2):
-            line_2 = new_border2[j-1:j+1]
+            line_2 = new_border2[j-1:j+1].copy()
             inter_point, _, _ = line_intersects(line, line_2)
             if inter_point is not None:
                 line[0] = inter_point
@@ -69,9 +89,12 @@ def add_intersections(border1, border2):
                 if not is_in_array(inter_point,new_border2):
                     new_border2 = np.insert(new_border2,j,inter_point,axis=0)
                 j +=1
-                intersections.append(inter_point)
+                if not is_in_array(inter_point, intersections):
+                    intersections.append(inter_point)
             j +=1
+        # if not is_in_array(inter_point, new_border1):
         new_border1.append(border1[i])
+
     return np.array(new_border1), new_border2, np.array(intersections)
 
 
@@ -84,12 +107,12 @@ def is_in_array(point, array):
 
 def combine_borders(border1, border2, intersections):
     final_border = []
-    final_border.append(border1[0])
-    i = 1
-    j = 1
+    # final_border.append(border1[0])
+    i = 0
+    j = 0
     first_border = True
     second_border_direction = 0
-    while i < len(border1):
+    while i < len(border1)-1:
         if first_border:
             final_border.append(border1[i])
             if not is_in_array(border1[i], intersections):
@@ -132,15 +155,17 @@ def combine_borders(border1, border2, intersections):
 
 
 def process_borders(borders, debug=False):
-    borders = [to_points_shape(bord) for bord in borders]
+    borders = [to_points_shape_unsorded(bord) for bord in borders]
     combined_border = borders[0].copy()
 
     for k in range(1, len(borders)):
+        print("===================")
+        print('k:',k, len(borders))
         new_points, new_points2, intersections = add_intersections(combined_border, borders[k])
         # new_points = new_points[:-1]
-        # shift = 32
+        # shift = 31
         # new_points = np.append(new_points[shift:], new_points[:shift + 1], axis=0)
-
+        print("is_in_array: ", is_in_array(new_points[0],intersections))
         if debug:
             plt.plot(new_points[::, 0], new_points[::, 1], marker='.', markersize=2, color='b', linewidth=1)
             plt.plot(new_points2[::, 0], new_points2[::, 1], marker='.', markersize=2, color='g', linewidth=1)
@@ -149,19 +174,32 @@ def process_borders(borders, debug=False):
             plt.scatter(new_points[0, 0], new_points[0, 1], s=40, color='b')
             plt.scatter(new_points2[0, 0], new_points2[0, 1], s=40, color='y')
             plt.axis([-6, 106, -6, 106])
+            plt.title(f"Initital plot for k: {k}")
             plt.show()
 
 
         i = 0
-        while is_inside_by_points(new_points[i], new_points2) or is_in_array(new_points[i], intersections):
+        while (i < len(new_points)) and is_inside_by_points(new_points[i], new_points2) or ((len(intersections) > 0) and not is_in_array(new_points[i], intersections)):
             i += 1
+            if i >= len(new_points):
+                # i = 0
+                break
+
+        if i >= len(new_points):
+            print('Split points')
+            new_points3 = new_points2.copy()
+            new_points2 = new_points.copy()
+            new_points = new_points3
+            i = 0
+            while (i < len(new_points)) and is_inside_by_points(new_points[i], new_points2) or \
+                    ((len(intersections) > 0) and not is_in_array(new_points[i], intersections)):
+                i += 1
 
         if debug:
             print(f'Shift for i: {i}')
         new_points = new_points[:-1]
         new_points = np.append(new_points[i:], new_points[:i + 1], axis=0)
         if debug:
-            print(is_in_array(new_points[0], intersections))
             print(len(combined_border), len(new_points), len(borders[k]), len(new_points2), len(intersections))
 
         combined_border, i, j = combine_borders(new_points, new_points2, intersections)
@@ -176,6 +214,7 @@ def process_borders(borders, debug=False):
             # plt.scatter(new_points[i,0], new_points[i,1], s=40, color='b')
             # plt.scatter(new_points2[j,0], new_points2[j,1], s=40, color='y')
             plt.axis([-6, 106, -6, 106])
+            plt.title(f"Final plot for k: {k}")
             plt.show()
     polygon = []
     for i in range(1,len(combined_border)):
@@ -188,6 +227,17 @@ if __name__ == "__main__":
     object = np.load(examples[2], allow_pickle=True)
     object1 = np.load(examples[1], allow_pickle=True)
     object2 = np.load(examples[0], allow_pickle=True)
-    out_border = process_borders([object, object1, object2], debug=True)
+    objects = np.load('lines_test.npy', allow_pickle=True)
+    # for bord in objects:
+    #     plot_lines([bord])
+    borders = [to_points_shape(bord) for bord in objects]
+    borders2 = [to_points_shape_unsorded(bord) for bord in objects]
+    # for bord in borders:
+    #     plt.plot(bord[::, 0], bord[::, 1], marker='.', markersize=2, color='b', linewidth=1)
+    #     plt.axis([-6, 106, -6, 106])
+    #     plt.show()
+
+    # out_border = process_borders(objects, debug=True)
+    out_border = process_borders([object1,object, object2], debug=True)
     plot_lines([out_border])
 

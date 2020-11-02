@@ -1,7 +1,8 @@
 import numpy as np
 import math
 import time
-from plotting import plot_lines, plot_points, plot_vectors
+from plotting import plot_lines, plot_points, plot_vectors, plot_lines3d
+from union_of_sections import process_borders
 
 
 def is_inside(point, polygon):
@@ -104,6 +105,7 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
     lines_of_slice = np.array(lines_of_slice)
     lines_of_slice = np.around(lines_of_slice - 10 ** (-(decimals + 5)), decimals=decimals)
     plot_lines(lines_of_slice,debug=debug)
+    return lines_of_slice, new_vectors
 
 
     # create dotted plane from given group of borders
@@ -150,20 +152,19 @@ def one_height_slice(mesh, begin_height, box_size,box_height, vectors=None, frac
     step = box_height // fraction
     height = begin_height
 
-
-    slice_plane, vectors = one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, debug=debug)
-    for iter in range(fraction - 2):
+    slice_plane = []
+    # slice_plane, vectors = one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, debug=debug)
+    for iter in range(fraction-1):
         height += step
         t_slice_plane, vectors = one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, debug=debug)
-        slice_plane += t_slice_plane
+        slice_plane.append(t_slice_plane)
 
     t_slice_plane, vectors = one_slice(vectors, begin_height + box_height, x_min, x_max, y_min, y_max, box_size, debug=debug)
-    slice_plane += t_slice_plane
+    slice_plane.append(t_slice_plane)
+    # np.save('lines_test.npy',slice_plane)
+    updated_plane = process_borders(slice_plane, debug=True)
 
-    slice_plane[slice_plane != 0] = 1
-
-    plot_points(slice_plane, debug=debug)
-    return slice_plane,vectors
+    return updated_plane,vectors
 
 
 def make_slice(mesh, box_size, box_height, fraction=3, debug=False):
@@ -174,14 +175,17 @@ def make_slice(mesh, box_size, box_height, fraction=3, debug=False):
     width = int(math.ceil(abs(y_max - y_min) / box_size))
     z_size = int(math.ceil(z_max / box_height))
 
-    sliced_image = np.zeros((length, width, z_size))
+    # sliced_image = np.zeros((length, width, z_size))
+    sliced = []
     vectors = None
     for i in range(z_size):
         temp_slice,vectors = one_height_slice(mesh, i * box_height, box_size, box_height, vectors=vectors, fraction=fraction, debug=debug)
-        sliced_image[:, :, i] = temp_slice
+        sliced.append(temp_slice)
 
+    plot_lines3d(sliced,box_size, True)
     slicing_time = time.time_ns() - beginning_time
-    return sliced_image, slicing_time
+    breakpoint()
+    return sliced, slicing_time
 
 
 

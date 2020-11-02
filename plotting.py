@@ -67,6 +67,33 @@ def plot_points3d(points3d, box_size, filename=None, debug=False):
         plt.savefig(filename, format='png')
     plt.show()
 
+
+def plot_lines3d(slice, box_size, debug=False):
+    if not debug:
+        return 0
+
+    """
+    Plotting array where indexes is coordinates of plotting points.
+    Point will be plotted only if element value is 1
+    :param points3d: two or three dimensional binary array
+    :return: nothing
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    x = []
+    y = []
+    z = []
+    for i in range(len(slice)):
+        ax.plot(slice[i][::,0], slice[i][::,1], i*box_size, c='b', marker='o')
+
+    # ax.annotate("A", (x[0], y[0], z[0]))
+
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    plt.show()
+
 def plot_lines(lines, debug=False):
     if not debug:
         return 0

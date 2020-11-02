@@ -291,6 +291,7 @@ class Slicer():
         elif params.type == MILING:
             initial_model_slice,_ = make_slice(initial_model, params.diameter, params.height, debug=debug)
             final_model_slice,_ = make_slice(final_model, params.diameter, params.height, debug=debug)
+
             sliced_image = initial_model_slice - final_model_slice
             return sliced_image
         else:

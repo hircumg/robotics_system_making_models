@@ -60,8 +60,8 @@ def one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size, decimals=6,
                 lower += 1
         if upper != 0 and lower != 0:
             triangles_of_slice.append([triangle.copy(), upper])
-    # plot_vectors([i[0] for i in triangles_of_slice])
-    # print("Triangles taken for height %.3f" % height)
+    plot_vectors([i[0] for i in triangles_of_slice])
+    print("Triangles taken for height %.3f" % height)
     # save only line of triangles in horizontal plane
     for triangle, upper in triangles_of_slice:
         # find points for neadble lines
@@ -147,7 +147,7 @@ def one_height_slice(mesh, begin_height, box_size, fraction=3):
     height = begin_height
 
     slice_plane = one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size)
-    # print("Temp slice on height %.3f made" % height)
+    print("Temp slice on height %.3f made" % height)
     for iter in range(fraction - 2):
         height += step
         slice_plane += one_slice(vectors, height, x_min, x_max, y_min, y_max, box_size)
@@ -165,7 +165,7 @@ def one_height_slice(mesh, begin_height, box_size, fraction=3):
 def make_slice(mesh, box_size, fraction=3):
     beginning_time = time.time_ns()
     x_min, x_max, y_min, y_max, z_min, z_max = find_mins_maxs(mesh)
-    # print("Size of the 3d object: x:[%.3f, %.3f], y:[%.3f, %.3f], z: %.3f" % (x_min, x_max, y_min, y_max, z_max))
+    print("Size of the 3d object: x:[%.3f, %.3f], y:[%.3f, %.3f], z: %.3f" % (x_min, x_max, y_min, y_max, z_max))
 
     length = int(math.ceil(abs(x_max - x_min) / box_size))
     width = int(math.ceil(abs(y_max - y_min) / box_size))

@@ -21,9 +21,15 @@ def plot_mesh(mesh):
 
     # Auto scale to the mesh size
     scale = mesh.points.flatten('F')
-    axes.auto_scale_xyz(scale, scale, scale)
+    # axes.auto_scale_xyz(scale, scale, scale)
+    axes.set_xlim3d(-50, 170)
+    axes.set_ylim3d(-200, 20)
+    axes.set_zlim3d(0, 220)
+
+    axes.view_init(30, -52)
     # Show the plot to the screen
     # print("plotted mesh")
+    pyplot.savefig('full_mesh.png')
     pyplot.show()
 
 
@@ -91,18 +97,25 @@ def plot_vectors(vectors):
     # Create a new plot
     figure = pyplot.figure()
     axes = mplot3d.Axes3D(figure)
-
     axes.add_collection3d(mplot3d.art3d.Poly3DCollection(vectors))
+    axes.set_xlim3d(-50, 170)
+    axes.set_ylim3d(-200, 20)
+    axes.set_zlim3d(0, 220)
 
-    # Auto scale to the mesh size
-    try:
-        scale = np.concatenate([v[0] for v in vectors]).flatten(-1)
-        axes.auto_scale_xyz(scale, scale, scale)
+    axes.view_init(30, -52)
+
+    # # Auto scale to the mesh size
+    # try:
+    #     t = [v[0] for v in vectors]
+    #     scale = np.concatenate(t).flatten(-1)
+    #     axes.auto_scale_xyz(scale, scale, scale)
 
         # Show the plot to the screen
-        pyplot.show()
-    except ValueError:
-        pass
+    pyplot.savefig('heigth_mesh.png')
+    pyplot.show()
+    breakpoint()
+    # except ValueError:
+    #     pass
 
 def plot_points(points, box_size=1):
     if not ploting_required:

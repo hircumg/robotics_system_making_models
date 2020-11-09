@@ -4,10 +4,11 @@ import numpy as np
 from math import atan2, sin, cos, sqrt, ceil
 
 import matplotlib as mpl
+mpl.rcParams['figure.dpi'] = 300
 
 from utils import line_intersects, is_inside_by_points
 
-mpl.rcParams['figure.dpi'] = 300
+
 
 def plot_lines(group_of_lines):
     """
@@ -49,6 +50,8 @@ def to_points_shape(lines_arr):
 
 def to_points_shape_unsorded(lines_arr):
     points = []
+    if len(lines_arr) == 0:
+        return []
     H1 = np.array([[1, 0, 1, 0],[0, 1, 0, 1]])
     H2 = np.array([[1, 1, 0, 0],[0, 0, 1, 1]])
     same_point = (np.argmin(np.sum((lines_arr[0].T@H1-lines_arr[1].T@H2)**2,axis=0)))%2
@@ -112,7 +115,7 @@ def combine_borders(border1, border2, intersections):
     j = 0
     first_border = True
     second_border_direction = 0
-    while i < len(border1)-1:
+    while i < len(border1):
         if first_border:
             final_border.append(border1[i])
             if not is_in_array(border1[i], intersections):
@@ -150,6 +153,8 @@ def combine_borders(border1, border2, intersections):
                 first_border = True
                 while abs(np.sum((border2[j] - border1[i]) ** 2)) > 0.001:
                     i += 1
+                    if i == len(border1):
+                        break
                 i += 1
     return final_border, i, j
 
@@ -228,16 +233,20 @@ if __name__ == "__main__":
     object1 = np.load(examples[1], allow_pickle=True)
     object2 = np.load(examples[0], allow_pickle=True)
     objects = np.load('lines_test.npy', allow_pickle=True)
-    # for bord in objects:
-    #     plot_lines([bord])
-    borders = [to_points_shape(bord) for bord in objects]
-    borders2 = [to_points_shape_unsorded(bord) for bord in objects]
-    # for bord in borders:
-    #     plt.plot(bord[::, 0], bord[::, 1], marker='.', markersize=2, color='b', linewidth=1)
-    #     plt.axis([-6, 106, -6, 106])
-    #     plt.show()
 
+    borders2 = [to_points_shape_unsorded(bord) for bord in objects]
+    border = borders2[0]
+    a = border[:-1]
+    b = border[1:]
+    diff = a - b
+    x_param = np.append(a[::,0].reshape((-1,1)), diff[::,0].reshape((-1,1)), axis=1)
+    y_param = np.append(a[::,1].reshape((-1,1)), diff[::,1].reshape((-1,1)), axis=1)
+    params = np.append(x_param, y_param, axis=1)
+    num =  diff[::,0]
+    dmun = diff[::,1]
+    divide = num / dmun
+    print(len(a), len(b))
     # out_border = process_borders(objects, debug=True)
     out_border = process_borders([object1,object, object2], debug=True)
-    plot_lines([out_border])
+    # plot_lines([out_border])
 

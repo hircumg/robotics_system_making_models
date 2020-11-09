@@ -4,6 +4,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import pyplot
 from mpl_toolkits import mplot3d
 
+from union_of_sections import to_points_shape
+
 
 def plot_mesh(mesh, debug=False):
     if not debug:
@@ -85,7 +87,8 @@ def plot_lines3d(slice, box_size, debug=False):
     y = []
     z = []
     for i in range(len(slice)):
-        ax.plot(slice[i][::,0], slice[i][::,1], i*box_size, c='b', marker='o')
+        points = to_points_shape(np.array(slice[i]))
+        ax.plot(points[::,0], points[::,1], i*box_size, c='b', marker='o')
 
     # ax.annotate("A", (x[0], y[0], z[0]))
 

@@ -289,6 +289,7 @@ class Slicer():
             print("Parmeters are not defined")
             return None
         elif params.type == MILING:
+
             initial_model_slice,_ = make_slice(initial_model, params.diameter, params.height, debug=debug)
             final_model_slice,_ = make_slice(final_model, params.diameter, params.height, debug=debug)
 

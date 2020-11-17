@@ -16,9 +16,10 @@ def plot_lines(lines,inc_lines, borders=None, middle_point=None):
     :return: nothing
     """
     if lines is not None:
-        for line in lines:
-            plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='.',
-                     markerfacecolor='red', markersize=1, color='yellow', linewidth=1)
+        for t_lines in lines:
+            for line in t_lines:
+                plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='.',
+                         markerfacecolor='red', markersize=1, color='red', linewidth=1)
      # plt.plot(all_lines, marker='o', markerfacecolor='red', markersize=5, color='skyblue', linewidth=4)
 
     if inc_lines is not None:
@@ -32,7 +33,7 @@ def plot_lines(lines,inc_lines, borders=None, middle_point=None):
             for lines in borders:
                 for line in lines:
                     plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='o',
-                             markerfacecolor='black', markersize=1, color='red', linewidth=1)
+                             markerfacecolor='black', markersize=1, color='y', linewidth=1)
 
     if middle_point is not None:
 
@@ -154,7 +155,7 @@ def generate_steps(object_projection, lines, num, middle_point, initial_distance
             extra= max_dist - dst
             # extra = extra if extra > initial_distance/2 else initial_distance/2
             extra = extra if extra > 0 else 0
-            new_step = round(extra / num, 2)
+            new_step = round(extra / num, 2) if extra != 0 else 0
             cur_steps.append(new_step)
         steps.append(cur_steps)
     return steps
@@ -293,7 +294,7 @@ def create_milling_line(lines, distance, middle_point, last_border, milling_diam
         # i +=1
         # print(i, dst, get_min_distance(np.array(new_lines), middle_point))
     print(f"Extended: {i} times")
-
+    plot_lines(array_of_lines,lines)
     array_of_lines.reverse()
 
     first_point.reverse()
@@ -308,6 +309,8 @@ def create_milling_line(lines, distance, middle_point, last_border, milling_diam
 
 
 def process_milling_slice(initial_object, cur_border, milling_diameter, clear_offset, threshold):
+    plot_lines([initial_object], cur_border)
+
     distance = milling_diameter*threshold
     object_offset = -milling_diameter/2 - clear_offset
     middle_point_cur_border = get_avg(cur_border)
@@ -335,7 +338,10 @@ if __name__ == "__main__":
     examples = ['lines_15.txt', 'lines_55.txt', 'lines_10.txt', 'lines_45.txt']
     object = np.load(examples[2], allow_pickle=True)
 
-    points = process_milling_slice(object, borders2,10, 1, 0.85)
+    # points = process_milling_slice(object, borders2,10, 1, 0.85)
+    points = process_milling_slice(np.load('final_model_slice.npy', allow_pickle=True),
+                                   np.load('initial_model_slice.npy', allow_pickle=True),
+                                   10, 1, 0.85)
 
     plt.plot(points[::, 0], points[::, 1], marker='.', markersize=2, color='b', linewidth=1)
     plt.axis([-6, 106, -6, 106])

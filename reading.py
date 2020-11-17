@@ -161,7 +161,7 @@ def one_height_slice(mesh, begin_height, box_size,box_height, vectors=None, frac
 
     t_slice_plane, vectors = one_slice(vectors, begin_height + box_height, x_min, x_max, y_min, y_max, box_size, debug=debug)
     slice_plane.append(t_slice_plane)
-    np.save('lines_test.npy',slice_plane)
+    # np.save('lines_test.npy',slice_plane)
     updated_plane = process_borders(slice_plane)
 
     return updated_plane,vectors
@@ -185,7 +185,7 @@ def make_slice(mesh, box_size, box_height, fraction=3, debug=False):
 
     plot_lines3d(sliced,box_size, True)
     slicing_time = time.time_ns() - beginning_time
-    return sliced, slicing_time
+    return np.array(sliced), slicing_time
 
 
 

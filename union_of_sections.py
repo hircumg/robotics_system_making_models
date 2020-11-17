@@ -77,6 +77,7 @@ def add_intersections(border1, border2):
     new_border1 = []
     new_border1.append(border1[0])
     intersections = []
+    same_points = []
     new_border2 = border2.copy()
     for i in range(1, len(border1)):
         line = border1[i-1:i+1].copy()
@@ -84,7 +85,9 @@ def add_intersections(border1, border2):
         while j < len(new_border2):
             line_2 = new_border2[j-1:j+1].copy()
             inter_point, _, _ = line_intersects(line, line_2)
-            if inter_point is not None:
+            if inter_point is not None and not is_in_array(line[0], line_2) and not is_in_array(line[1], line_2):
+                # if is_in_array(line[0], line_2) and is_in_array(line[1], line_2) and not is_in_array(inter_point, same_points):
+                #     same_points.append(inter_point)
                 line[0] = inter_point
                 # print(inter_point,is_in_array(inter_point,border1), is_in_array(inter_point,new_border2))
                 if not is_in_array(inter_point,border1):
@@ -94,11 +97,15 @@ def add_intersections(border1, border2):
                 j +=1
                 if not is_in_array(inter_point, intersections):
                     intersections.append(inter_point)
+
             j +=1
         # if not is_in_array(inter_point, new_border1):
         new_border1.append(border1[i])
-
-    return np.array(new_border1), new_border2, np.array(intersections)
+    new_iter = []
+    for inter in intersections:
+        if not is_in_array(inter, same_points):
+            new_iter.append(inter)
+    return  np.array(new_border1), new_border2, np.array(new_iter)
 
 
 def is_in_array(point, array):
@@ -161,6 +168,16 @@ def combine_borders(border1, border2, intersections):
 
 def process_borders(borders, debug=False):
     borders = [to_points_shape_unsorded(bord) for bord in borders]
+    simplified_borders = []
+    for border in borders:
+        if len(border) > 0:
+            dot = np.cross(border[:-2] - border[1:-1], border[1:-1] - border[2:], axis=1).reshape((-1, 1))
+            simplified_borders.append( np.delete(border, np.argwhere(dot == 0)[::, 0] + 1, axis=0))
+        else:
+            simplified_borders.append([])
+
+    borders = simplified_borders
+
     combined_border = borders[0].copy()
 
     for k in range(1, len(borders)):
@@ -234,19 +251,22 @@ if __name__ == "__main__":
     object2 = np.load(examples[0], allow_pickle=True)
     objects = np.load('lines_test.npy', allow_pickle=True)
 
-    borders2 = [to_points_shape_unsorded(bord) for bord in objects]
-    border = borders2[0]
-    a = border[:-1]
-    b = border[1:]
-    diff = a - b
-    x_param = np.append(a[::,0].reshape((-1,1)), diff[::,0].reshape((-1,1)), axis=1)
-    y_param = np.append(a[::,1].reshape((-1,1)), diff[::,1].reshape((-1,1)), axis=1)
-    params = np.append(x_param, y_param, axis=1)
-    num =  diff[::,0]
-    dmun = diff[::,1]
-    divide = num / dmun
-    print(len(a), len(b))
+    # borders2 = [to_points_shape_unsorded(bord) for bord in objects]
+    # border = borders2[0]
+    # a = border[:-2]
+    # b = border[1:-1]
+    # c = border[2:]
+    # l1 = a - b
+    # l2 = b - c
+    # dot = np.cross(border[:-2]-border[1:-1],border[1:-1]-border[2:], axis=1).reshape((-1,1))
+    # updated_borders = np.delete(border, np.argwhere(dot==0)[::,0]+1, axis=0)
+    # ddot = []
+    # for i in range(len(l1)):
+    #     ddot.append(np.cross(l1[i], l2[i]))
+
+
     # out_border = process_borders(objects, debug=True)
     out_border = process_borders([object1,object, object2], debug=True)
+    # out_border = process_borders([object, object2], debug=True)
     # plot_lines([out_border])
 

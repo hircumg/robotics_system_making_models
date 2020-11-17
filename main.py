@@ -1,8 +1,10 @@
 from stl import mesh
 import numpy as np
+
+from milling_slice import process_milling_slice
 from reading import make_slice
 import math
-from plotting import plot_points3d
+from plotting import plot_points3d, plot_lines3d
 import json
 
 # !! set constant
@@ -293,7 +295,11 @@ class Slicer():
             initial_model_slice,_ = make_slice(initial_model, params.diameter, params.height, debug=debug)
             final_model_slice,_ = make_slice(final_model, params.diameter, params.height, debug=debug)
 
-            sliced_image = initial_model_slice - final_model_slice
+            sliced_image = []
+            for i in range(len(initial_model_slice)):
+                # np.save('final_model_slice.npy', final_model_slice[i])
+                # np.save('initial_model_slice.npy', initial_model_slice[i])
+                sliced_image.append(process_milling_slice(final_model_slice[i],initial_model_slice[i], params.diameter, 1, 0.85))
             return sliced_image
         else:
             print("Unexpected process", params.type)
@@ -309,6 +315,7 @@ def findTrajectory(srcName, dstName, params):
 
     slicer = Slicer()
     sliced_mesh = slicer.processing(src_mesh, dst_mesh, params, debug=False)
+    plot_lines3d(sliced_mesh, params.height, True)
     if params.type == MILING:
         return get_milling_sequence(sliced_mesh, params.diameter, params.height)
     # default

@@ -145,7 +145,7 @@ def get_min_distance(lines, middle_point):
 
     return max_dst
 
-def generate_steps(object_projection, lines, num, middle_point, initial_distance):
+def generate_steps(object_projection, lines, num, middle_point, initial_distance,distance):
     steps = []
     for i,line in enumerate(lines):
         cur_steps = []
@@ -155,7 +155,7 @@ def generate_steps(object_projection, lines, num, middle_point, initial_distance
             extra= max_dist - dst
             # extra = extra if extra > initial_distance/2 else initial_distance/2
             extra = extra if extra > 0 else 0
-            new_step = round(extra / num, 2) if extra != 0 else 0
+            new_step = round(extra / num, 2) if num != 0 else distance
             cur_steps.append(new_step)
         steps.append(cur_steps)
     return steps
@@ -230,7 +230,7 @@ def create_milling_line(lines, distance, middle_point, last_border, milling_diam
     print(extra, num, distance, new_step, extra/new_step)
     # distance = new_step
     object_projection = get_object_projection(lines,middle_point,last_border)
-    steps = generate_steps(object_projection,lines,num,middle_point, new_step)
+    steps = generate_steps(object_projection,lines,num,middle_point, new_step,distance)
     len_of_lines = len(lines)
 
     for i in range(num+1):
@@ -319,7 +319,7 @@ def create_milling_line(lines, distance, middle_point, last_border, milling_diam
 
 
 def process_milling_slice(initial_object, cur_border, milling_diameter, clear_offset, threshold):
-    plot_lines([initial_object], cur_border)
+    # plot_lines([initial_object], cur_border)
 
     distance = milling_diameter*threshold
     object_offset = -milling_diameter/2 - clear_offset

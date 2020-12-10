@@ -25,7 +25,7 @@ def plot_lines(lines,inc_lines, borders=None, middle_point=None):
     if inc_lines is not None:
         for line in inc_lines:
             plt.plot([line[0][0], line[1][0]], [line[0][1], line[1][1]], marker='o',
-                     markerfacecolor='red', markersize=1, color='skyblue', linewidth=1)
+                     markerfacecolor='red', markersize=1, color='skyblue', linewidth=2)
      # plt.plot(all_lines, marker='o', markerfacecolor='red', markersize=5, color='skyblue', linewidth=4)
 
     if borders is not None:
@@ -226,7 +226,7 @@ def create_milling_line(lines, distance, middle_point, last_border, milling_diam
     max_dst = get_max_distance(last_border,middle_point) - distance*0.25
     extra = max_dst-get_min_distance(np.array(lines),middle_point)
     num = ceil((max_dst-get_min_distance(np.array(lines),middle_point))/distance)
-    new_step = round(extra/num,2)
+    new_step = round(extra/num,2) if num != 0 else distance
     print(extra, num, distance, new_step, extra/new_step)
     # distance = new_step
     object_projection = get_object_projection(lines,middle_point,last_border)
@@ -246,42 +246,52 @@ def create_milling_line(lines, distance, middle_point, last_border, milling_diam
                 new_line.append(new_point)
 
             if j == 1:
-                if abs(calc_dist(new_lines[0][0], new_line[0])) < 0.0001:
-                    first_point.append(new_lines[0][0])
-                else:
+                if abs(calc_dist(new_lines[0][0], new_line[0])) < 0.0001 or \
+                        abs(calc_dist(new_lines[0][0], new_line[1])) < 0.0001:
                     first_point.append(new_lines[0][1])
-
-
-
-            if i != 0 and j >= len_of_lines//2 and \
-                    (min(calc_dist(first_point[i], new_line[0]),calc_dist(first_point[i], new_line[1])) <= distance/2.0):
-                x0, y0 = new_line[0]
-                x1, y1 = new_line[1]
-                x2, y2 = first_point[i]
-                R = distance/2.0
-                Lk = (y1 - y0)/(x1- x0)
-                Lb = y0 - x0 * (y1-y0)/(x1-x0)
-                Da = 1 + Lk**2
-                Db = Lk*Lb - y2 * Lk - x2
-                Dc = Lb**2 + y2**2 + x2**2 - R**2 -2 * y2 * Lb
-                D = sqrt(Db**2 - Da * Dc)
-                x = [(-Db - D)/(Da), (-Db + D)/(Da)]
-                y = [Lk * x[0] + Lb, Lk * x[1] + Lb]
-                if x[0] >= min(x0,x1) and x[0] <= max(x0,x1) and y[0] >= min(y0,y1) and y[0] <= max(y0,y1):
-                    last_point_t = [x[0], y[0]]
                 else:
-                    last_point_t = [x[1], y[1]]
-                last_point.append(last_point_t)
+                    first_point.append(new_lines[0][0])
 
-                if calc_dist(first_point[i], new_line[0]) <= distance/2.0:
-                    new_line = [new_line[1], last_point_t]
-                else:
-                    new_line = [new_line[0], last_point_t]
 
-                # if i != 0:
-                    # to close the pre-cleaning path
-                new_lines.append(new_line)
-                break
+
+            if i != 0 and j >= len_of_lines//2:
+                d1 = calc_dist(first_point[i], new_line[0])
+                d2 = calc_dist(first_point[i], new_line[1])
+                if (min(calc_dist(first_point[i], new_line[0]),calc_dist(first_point[i], new_line[1])) <= distance/2.0):
+                    x0, y0 = new_line[0]
+                    x1, y1 = new_line[1]
+                    x2, y2 = first_point[i]
+                    R = distance/2.0
+                    Da = (x1 - x0)**2 + (y1 - y0) ** 2
+                    Db = (x0 - x2) * (x1-x0) + (y0 - y2) * (y1 - y0)
+                    Dc = (x0 - x2) ** 2 + (y0 - y2) ** 2 - R**2
+                    # Lk = (y1 - y0)/(x1- x0)
+                    # Lb = y0 - x0 * (y1-y0)/(x1-x0)
+                    # Da = 1 + Lk**2
+                    # Db = Lk*Lb - y2 * Lk - x2
+                    # Dc = Lb**2 + y2**2 + x2**2 - R**2 -2 * y2 * Lb
+                    D = Db**2 - Da * Dc
+                    D = sqrt(Db**2 - Da * Dc)
+                    t = [(-Db - D) / (Da), (-Db + D) / (Da)]
+                    x = [(x1 - x0) * t[0] + x0, (x1 - x0) * t[1] + x0]
+                    y = [(y1 - y0) * t[0] + y0, (y1 - y0) * t[1] + y0]
+                    # x = [(-Db - D)/(Da), (-Db + D)/(Da)]
+                    # y = [Lk * x[0] + Lb, Lk * x[1] + Lb]
+                    if x[0] >= min(x0,x1) and x[0] <= max(x0,x1) and y[0] >= min(y0,y1) and y[0] <= max(y0,y1):
+                        last_point_t = [x[0], y[0]]
+                    else:
+                        last_point_t = [x[1], y[1]]
+                    last_point.append(last_point_t)
+
+                    if calc_dist(first_point[i], new_line[0]) <= distance/2.0:
+                        new_line = [new_line[1], last_point_t]
+                    else:
+                        new_line = [new_line[0], last_point_t]
+
+                    # if i != 0:
+                        # to close the pre-cleaning path
+                    new_lines.append(new_line)
+                    break
             new_lines.append(new_line)
         if i == 0:
             last_point.append(first_point[i])
@@ -294,7 +304,7 @@ def create_milling_line(lines, distance, middle_point, last_border, milling_diam
         # i +=1
         # print(i, dst, get_min_distance(np.array(new_lines), middle_point))
     print(f"Extended: {i} times")
-    plot_lines(array_of_lines,lines)
+    # plot_lines(array_of_lines,lines)
     array_of_lines.reverse()
 
     first_point.reverse()
@@ -336,12 +346,12 @@ if __name__ == "__main__":
                         [[100, 100],[100, 0]], [[100, 0],[10, 0]],
                          [[10, 0], [0, 10]]])
     examples = ['lines_15.txt', 'lines_55.txt', 'lines_10.txt', 'lines_45.txt']
-    object = np.load(examples[2], allow_pickle=True)
+    object = np.load(examples[1], allow_pickle=True)
 
-    # points = process_milling_slice(object, borders2,10, 1, 0.85)
-    points = process_milling_slice(np.load('final_model_slice.npy', allow_pickle=True),
-                                   np.load('initial_model_slice.npy', allow_pickle=True),
-                                   10, 1, 0.85)
+    points = process_milling_slice(object, borders2,10, 1, 0.85)
+    # points = process_milling_slice(np.load('final_model_slice.npy', allow_pickle=True),
+    #                                np.load('initial_model_slice.npy', allow_pickle=True),
+    #                                10, 1, 0.85)
 
     plt.plot(points[::, 0], points[::, 1], marker='.', markersize=2, color='b', linewidth=1)
     plt.axis([-6, 106, -6, 106])

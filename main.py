@@ -4,7 +4,7 @@ import numpy as np
 from milling_slice import process_milling_slice
 from reading import make_slice
 import math
-from plotting import plot_points3d, plot_lines3d, plot_lines_by_points_3d
+from plotting import plot_points3d, plot_lines3d, plot_lines_by_points_3d, plot_full_lines_by_points_3d
 import json
 
 # !! set constant
@@ -65,7 +65,7 @@ def xyz_to_meters(dct):
             dct[pair[0]] = (v[0] * 0.001, v[1] * 0.001, v[2] * 0.001, v[3], v[4], v[5])
 
 
-def get_milling_sequence(sliced_image, drilling_radius, drilling_height):
+def get_milling_sequence(sliced_image):
     trajectory = []
 
     t_point = 'p0'
@@ -92,7 +92,6 @@ def get_milling_sequence(sliced_image, drilling_radius, drilling_height):
                         trajectory.append({'type': 'lin', 'proc': is_milling, 'points': [t_point]})
                         t_point_old = t_point
                         point_iter += 2
-
                 else:
                     if is_milling:
                         t_point = 'p' + str(point_iter)
@@ -292,17 +291,28 @@ class Slicer():
             return None
         elif params.type == MILING:
 
+            print("Initial model slicing has been started")
             initial_model_slice,_ = make_slice(initial_model, params.diameter, params.height, debug=debug)
+            print("Initial model slicing has been finished")
+            print("Final model slicing has been started")
             final_model_slice,_ = make_slice(final_model, params.diameter, params.height, debug=debug)
+            print("Final model slicing has been finished")
 
+            print("Slicing path generation has started")
             sliced_image = []
             for i in range(len(initial_model_slice)):
-                # np.save('final_model_slice.npy', final_model_slice[i])
-                # np.save('initial_model_slice.npy', initial_model_slice[i])
-                sliced_image.append(process_milling_slice(final_model_slice[i],initial_model_slice[i], params.diameter, 1, 0.85))
+                prev_first_point = sliced_image[-1][0][:-1] if len(sliced_image) > 0 else None
+                t_slice = process_milling_slice(final_model_slice[i],initial_model_slice[i], params.diameter, 1, 0.85, prev_first_point= prev_first_point)
+                sliced_image.append(np.append(t_slice, np.full(t_slice.shape[0],i*params.height).reshape((-1,1)),axis=1))
+            print("Slicing path generation has finished")
+
 
             plot_lines_by_points_3d(sliced_image, params.height,  initial_model=initial_model_slice, final_model=final_model_slice, debug=True)
-            return sliced_image
+
+            sliced_image.reverse()
+            sliced_image_total = np.concatenate(sliced_image, axis=0)
+            plot_full_lines_by_points_3d(sliced_image_total,initial_model=initial_model_slice, final_model=final_model_slice, debug=True)
+            return sliced_image_total
         else:
             print("Unexpected process", params.type)
             return None
@@ -318,7 +328,7 @@ def findTrajectory(srcName, dstName, params):
     slicer = Slicer()
     sliced_mesh = slicer.processing(src_mesh, dst_mesh, params, debug=False)
     if params.type == MILING:
-        return get_milling_sequence(sliced_mesh, params.diameter, params.height)
+        return get_milling_sequence(sliced_mesh)
     # default
     return None
 

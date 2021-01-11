@@ -183,7 +183,7 @@ def make_slice(mesh, box_size, box_height, fraction=3, debug=False):
         temp_slice,vectors = one_height_slice(mesh, i * box_height, box_size, box_height, vectors=vectors, fraction=fraction, debug=debug)
         sliced.append(temp_slice)
 
-    # plot_lines3d(sliced,box_size, debug=debug)
+    # plot_lines3d(sliced,box_size, debug=True)
     slicing_time = time.time_ns() - beginning_time
     return np.array(sliced), slicing_time
 

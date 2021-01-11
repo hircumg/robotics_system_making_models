@@ -318,7 +318,7 @@ def create_milling_line(lines, distance, middle_point, last_border, milling_diam
     return new_array_of_lines
 
 
-def process_milling_slice(initial_object, cur_border, milling_diameter, clear_offset, threshold):
+def process_milling_slice(initial_object, cur_border, milling_diameter, clear_offset, threshold,prev_first_point=None):
     # plot_lines([initial_object], cur_border)
 
     distance = milling_diameter*threshold
@@ -332,9 +332,34 @@ def process_milling_slice(initial_object, cur_border, milling_diameter, clear_of
     points = to_points_shape(new_lines)
 
     # add clear path
-    clear_border = add_offset(initial_object,object_offset+clear_offset,object_middle_point)
-    points = np.append(points, to_points_shape(np.array(clear_border)), axis=0)
+    clear_border = to_points_shape(np.array(add_offset(initial_object,object_offset+clear_offset,object_middle_point)))
+    # clear_border = np.append(clear_border[1::, ::], [clear_border[1]], axis=0)
+    # plt.plot(clear_border[::, 0], clear_border[::, 1], marker='o',
+    #                  markerfacecolor='red', markersize=1, color='skyblue', linewidth=2)
+    # plt.plot(clear_border[-1,0], clear_border[-1,1], marker='.', markerfacecolor='red', markersize=10)
+    # if prev_first_point is not None:
+    #     plt.plot([prev_first_point[0]], [prev_first_point[1]], marker='.', markerfacecolor='yellow', markersize=10)
+    # plt.show()
 
+    shift = 0
+    if prev_first_point is not None:
+        dp2 = np.sum( (clear_border - prev_first_point) ** 2,axis=1)
+        shift = np.argmin(dp2)
+
+    if shift != 0:
+        clear_border = np.append(clear_border[:-1, ::], clear_border[:shift+1,::], axis=0)
+
+    if prev_first_point is not None:
+        clear_border = np.append(clear_border, [prev_first_point], axis=0)
+
+    # plt.plot(clear_border[::, 0], clear_border[::, 1], marker='o',
+    #                  markerfacecolor='red', markersize=1, color='skyblue', linewidth=2)
+    # plt.plot(clear_border[-1,0], clear_border[-1,1], marker='.', markerfacecolor='red', markersize=10)
+    # if prev_first_point is not None:
+    #     plt.plot([prev_first_point[0]], [prev_first_point[1]], marker='.', markerfacecolor='yellow', markersize=10)
+    # plt.show()
+
+    points = np.append(points, clear_border, axis=0)
     return points
 
 
@@ -346,7 +371,7 @@ if __name__ == "__main__":
                         [[100, 100],[100, 0]], [[100, 0],[10, 0]],
                          [[10, 0], [0, 10]]])
     examples = ['lines_15.txt', 'lines_55.txt', 'lines_10.txt', 'lines_45.txt']
-    object = np.load(examples[1], allow_pickle=True)
+    object = np.load(examples[3], allow_pickle=True)
 
     points = process_milling_slice(object, borders2,10, 1, 0.85)
     # points = process_milling_slice(np.load('final_model_slice.npy', allow_pickle=True),

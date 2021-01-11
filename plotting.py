@@ -87,7 +87,7 @@ def plot_lines_by_points_3d(slice, box_size,  initial_model=None, final_model=No
     z = []
     for i in range(len(slice)):
         points = slice[i]
-        ax.plot(points[::,0], points[::,1], i*box_size, c='b', marker='x', linestyle='-', mec='k', linewidth=1, markersize=5)
+        ax.plot(points[::,0], points[::,1],  points[::,2], c='b', marker='x', linestyle='-', mec='k', linewidth=1, markersize=5)
 
 
     # if initial_model is not None:
@@ -107,6 +107,42 @@ def plot_lines_by_points_3d(slice, box_size,  initial_model=None, final_model=No
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
     plt.show()
+
+def plot_full_lines_by_points_3d(slice,  initial_model=None, final_model=None, debug=False):
+    if not debug:
+        return 0
+
+    """
+    Plotting array where indexes is coordinates of plotting points.
+    Point will be plotted only if element value is 1
+    :param points3d: two or three dimensional binary array
+    :return: nothing
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    ax.plot(slice[::,0], slice[::,1],  slice[::,2], c='b', marker='x', linestyle='-', mec='k', linewidth=1, markersize=5)
+
+
+    # if initial_model is not None:
+    #     for i in range(len(initial_model)):
+    #         points = to_points_shape(np.array(initial_model[i]))
+    #         ax.plot(points[::, 0], points[::, 1], i * box_size, c='r', marker='o', linewidth=1, markersize=1)
+    #
+    # if final_model is not None:
+    #     for i in range(len(final_model)):
+    #         points = to_points_shape(np.array(final_model[i]))
+    #         ax.plot(points[::, 0], points[::, 1], i * box_size, c='g', marker='o', linewidth=1, markersize=1)
+
+    # ax.annotate("A", (x[0], y[0], z[0]))
+    ax.view_init(30, -15)
+    # ax.view_init(80, -15)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    plt.show()
+
+
 
 def plot_lines3d(slice, box_size, debug=False):
     if not debug:

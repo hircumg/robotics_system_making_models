@@ -181,13 +181,13 @@ def process_borders(borders, debug=False):
     combined_border = borders[0].copy()
 
     for k in range(1, len(borders)):
-        print("===================")
-        print('k:',k, len(borders))
+        # print("===================")
+        # print('k:',k, len(borders))
         new_points, new_points2, intersections = add_intersections(combined_border, borders[k])
         # new_points = new_points[:-1]
         # shift = 31
         # new_points = np.append(new_points[shift:], new_points[:shift + 1], axis=0)
-        print("is_in_array: ", is_in_array(new_points[0],intersections))
+        # print("is_in_array: ", is_in_array(new_points[0],intersections))
         if debug:
             plt.plot(new_points[::, 0], new_points[::, 1], marker='.', markersize=2, color='b', linewidth=1)
             plt.plot(new_points2[::, 0], new_points2[::, 1], marker='.', markersize=2, color='g', linewidth=1)

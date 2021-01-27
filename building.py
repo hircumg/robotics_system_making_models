@@ -39,6 +39,7 @@ def provide_best_substrate(sliced_mesh):
 
 
 
+
 def get_building_sequence(sliced_mesh, box_size):
     sequence = []
     mesh_size = sliced_mesh.shape

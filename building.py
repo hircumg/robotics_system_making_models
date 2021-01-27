@@ -4,6 +4,7 @@ from plotting import plot_points3d, plot_mesh, set_ploting_required
 from reading import make_slice
 import json
 
+
 def get_max_side(sliced_mesh):
     best_substrate = [sliced_mesh[0, :, :].sum(),
                       sliced_mesh[-1, :, :].sum(),

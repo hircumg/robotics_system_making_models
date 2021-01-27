@@ -36,5 +36,6 @@ cmd = {
   'do': [cmd1,cmd2,...]
 }
 
+
 # p = {'p1': (x1,y1,z1), 'p2': (x2,y2,z2)}
 # trajectory = [{'type':'lin', 'points': ['p1','p2','p1'],...}]
